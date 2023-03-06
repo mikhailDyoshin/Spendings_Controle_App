@@ -1,0 +1,19 @@
+@startuml AppStructure
+
+actor       User       as USER
+control     UI     as UI
+participant Plot  as PLOT
+collections Data as DATA
+entity "Data\nconveyor" as DATACONV
+database    Database    as DB
+
+USER -> UI : User interacts with UI 
+UI -> DB : UI inserts, updates and deletes data in database
+UI <- PLOT : Inserting the plot-component in the UI
+PLOT <- DATA : Respresenting some of the prepared data as a plot
+DATA <- DATACONV : Sending prepared data
+DATACONV <- DB : Fetching data from the database
+UI --> DATA : User can change prepared data
+UI <- DATA : Sending prepared data to display it in the UI
+
+@enduml
