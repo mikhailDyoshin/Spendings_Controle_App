@@ -198,7 +198,12 @@ def print_list(l:list):
     print(']')
 
 
-data = [(1, '2023.2.25', 25, 100, 1000, 1125), (3, '2023.3.3', 250, 0, 1000, 1250), (2, '2023.2.18', 250, 10, 500, 760)]
+data = [(1, '2023.2.25', 25, 100, 1000, 1125), 
+        (3, '2023.3.3', 250, 0, 1000, 1250), 
+        (2, '2023.2.18', 250, 10, 500, 760),
+        (4, '2023.3.6', 250, 100, 500, 1060),
+        ]
+
 fields = ['food', 'transport', 'shopping', 'total']
 
 dataEntity = Data(data, fields)
@@ -209,15 +214,13 @@ print_dict(dataEntity.initDict)
 
 print_dict(dataEntity.lastDatesSpendings)
 
+print_dict(dataEntity.dictForPlot)
+
 figure = dataEntity.plotImg
 
 plt.show()
 
-data = [(1, '2023.2.25', 25, 100, 1000, 1125), 
-        (3, '2023.3.3', 250, 0, 1000, 1250), 
-        (2, '2023.2.18', 250, 10, 500, 760),
-        (4, '2023.3.6', 250, 100, 500, 1060),
-        ]
+
 
 plt.show()
 
