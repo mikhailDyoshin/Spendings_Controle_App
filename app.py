@@ -1,9 +1,13 @@
 from tkinter import *
 from tkinter import messagebox
+import datetime
 from handy import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.pyplot as plt
 from db import Database
+from data import Data
+from YearlyGraph import YearlyGraph
+from tkcalendar import DateEntry
+from myDateEntry import MyDateEntry
 
 
 class App(Tk):
@@ -13,91 +17,126 @@ class App(Tk):
     def __init__(self):
         super().__init__()
 
+        # The protocol defines what happens when the user closes a window
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+
         # Window title
         self.title("Spending-Control-App")
 
         # Database
         self.db = Database('storage.db')
 
+        # Fields of the table in the database
+        self.fields = ('food', 'transport', 'shopping', 'total')
+
+        # All records fetched from the database
         self.records = self.db.fetch()
 
-        # Period of spending days to visualize on the plot
-        self.period = 30
+        # data-conveyer
+        self.dataConv = Data(self.records, self.fields)
 
-        # Data prepared to be plotted
-        self.dataForPlot = self.prepare_plot_data() 
+        # sorted list of data fetched from the database
+        self.dataSorted = self.dataConv.dataSorted
+
+        # Initial dictionary
+        self.initDict = self.dataConv.initDict
+
+        # Plot of the last year spendings
+        self.yearlyGraph = YearlyGraph(self.initDict)
+
+        # The list of plots
+        self.plotsList = [self.dataConv.lastWeekPlotFig, 
+                          self.dataConv.lastMonthPlotFig,
+                          self.yearlyGraph.yearlyPlot]
+        # Default plot's index in the list of plots
+        self.activePlotIndex = 0
+        # Default plot to display
+        self.activePlot = self.plotsList[self.activePlotIndex]
 
         # Selected item in the list box
         self.selected_item = None
-
-        # Canvas to draw a plot
-        self.canvas = None
-
         
         """ Frames """
         # Frame for inputs, buttons and the list box
-        self.mainFrame = Frame(self, width=400, height=600)
+        self.mainFrame = Frame(self, width=800, height=1000)
         self.mainFrame.grid(row=0, column=0)
 
+        # Frame that stores all interactive objects (buttons, entries, listbox)
+        self.interactiveFrame = Frame(self.mainFrame, width=400, height=1000, padx=5, pady=5)
+        self.interactiveFrame.grid(column=0, row=0)
+
         # Frame for inputs
-        self.inputsFrame = Frame(self.mainFrame, width=400, height=600, padx=5, pady=5)
+        self.inputsFrame = Frame(self.interactiveFrame, width=400, height=300)
         self.inputsFrame.grid(column=0, row=0)
 
         # Frame for buttons
-        self.buttonsFrame = Frame(self.mainFrame, width=400, height=100, bg='grey')
-        self.buttonsFrame.grid(row=1, column=0, padx=5,  pady=5)
+        self.buttonsFrame = Frame(self.interactiveFrame, width=400, height=100, bg='grey')
+        self.buttonsFrame.grid(row=1, column=0)
 
         # Frame for list box
-        self.listBoxFrame = Frame(self.mainFrame, width=400, height=600, bg='grey')
-        self.listBoxFrame.grid(row=2, column=0, padx=5,  pady=5)
+        self.listBoxFrame = Frame(self.interactiveFrame, width=400, height=600, bg='grey')
+        self.listBoxFrame.grid(row=2, column=0, pady=2)
 
-        # Frame for plot
-        self.plotFrame = Frame(self,  width=400, height=500, bg='grey', padx=5, pady=5)
-        self.plotFrame.grid(row=0,  column=1,  padx=10,  pady=5)
+        # Frame for the plot and buttons that controle it
+        self.plotFrame = Frame(self.mainFrame,  width=400, height=1000, bg='grey', padx=5, pady=5)
+        self.plotFrame.grid(row=0,  column=1)
 
-        self.plotButtonsFrame = Frame(self.plotFrame,  width=400, height=100, padx=5, pady=5)
+        self.plotButtonsFrame = Frame(self.plotFrame,  width=400, height=100)
         self.plotButtonsFrame.grid(row=0,  column=0)
 
-        self.plotImageFrame = Frame(self.plotFrame,  width=400, height=400, padx=5, pady=5)
+        self.plotImageFrame = Frame(self.plotFrame,  width=400, height=900)
         self.plotImageFrame.grid(row=1,  column=0)
 
         """ ******************************** Widgets ******************************** """
 
+        """ Plot's canvas """
+        # Canvas to draw a plot
+        self.canvas = FigureCanvasTkAgg(
+            self.activePlot,
+            master = self.plotImageFrame)
+        
+        # placing the canvas on the Tkinter window
+        self.canvas.get_tk_widget().grid(row=0, column=0, sticky=(N, S, W, E))
+
         """ Date field """
         # Date label
-        self.date_text = StringVar()
-        self.date_label = Label(self.inputsFrame, text="Date", font=('bold', 14), pady=10, padx=5)
-        self.date_label.grid(row=0, column=0, sticky=(N, W, E, S))
+        self.date_label = Label(
+            self.inputsFrame, 
+            text="Date", 
+            font=('bold', 14), 
+            pady=10, padx=5
+        )
+        self.date_label.grid(row=0, column=0,)
         # Date input
-        self.date_entry = Entry(self.inputsFrame, textvariable=self.date_text)
-        self.date_entry.grid(row=0, column=1, sticky=(W, E))
+        self.date_entry = MyDateEntry(self.inputsFrame, align='right', width=14)
+        self.date_entry.grid(row=0, column=1,)
 
         """ Food spendings"""
         # Food label
         self.food_text = StringVar()
         self.food_label = Label(self.inputsFrame, text="Food", font=('bold', 14), pady=10, padx=5)
-        self.food_label.grid(row=1, column=0, sticky=(N, W, E, S))
+        self.food_label.grid(row=1, column=0,)
         # Food input
         self.food_entry = Entry(self.inputsFrame, textvariable=self.food_text, width=15)
-        self.food_entry.grid(row=1, column=1, sticky=(W, E))
+        self.food_entry.grid(row=1, column=1,)
 
         """ Transport spendings """
         # Transport label
         self.transport_text = StringVar()
         self.transport_label = Label(self.inputsFrame, text="Transport", font=('bold', 14), pady=10, padx=5)
-        self.transport_label.grid(row=2, column=0, sticky=(N, W, E, S))
+        self.transport_label.grid(row=2, column=0,)
         # Transport input
         self.transport_entry = Entry(self.inputsFrame, textvariable=self.transport_text, width=15)
-        self.transport_entry.grid(row=2, column=1, sticky=(W, E))
+        self.transport_entry.grid(row=2, column=1,)
 
         """ Shopping """
         # Shopping label
         self.shopping_text = StringVar()
         self.shopping_label = Label(self.inputsFrame, text="Shopping", font=('bold', 14), pady=10, padx=5)
-        self.shopping_label.grid(row=3, column=0, sticky=(N, W, E, S))
+        self.shopping_label.grid(row=3, column=0,)
         # Shopping input
         self.shopping_entry = Entry(self.inputsFrame, textvariable=self.shopping_text, width=15)
-        self.shopping_entry.grid(row=3, column=1, sticky=(W, E))
+        self.shopping_entry.grid(row=3, column=1,)
 
         """ Spendings list """
         listPositionX = 0
@@ -106,12 +145,19 @@ class App(Tk):
         self.scrollbarPositionX = listPositionX + listColumnSpan + 1
 
         # Create list box
-        self.records_list = Listbox(self.listBoxFrame, width=60, height=8, border=0)
-        self.records_list.grid(row=listPositionY, column=listPositionX, rowspan=4, columnspan=listColumnSpan, padx=10, pady=10, sticky=(N, W, E, S))
+        self.records_list = Listbox(self.listBoxFrame, border=3, width=50, height=10)
+        self.records_list.grid(
+            row=listPositionY, 
+            column=listPositionX, 
+            rowspan=1, 
+            columnspan=listColumnSpan,  
+            sticky=(N, W, E, S),
+            padx=5, pady=5
+        )
 
         # Create scrollbar
         self.scrollbar = Scrollbar(self.listBoxFrame)
-        self.scrollbar.grid(row=0, column=self.scrollbarPositionX, sticky=W)
+        self.scrollbar.grid(row=0, column=self.scrollbarPositionX, sticky=(N, W, E, S))
 
         # Connect scrollbar to the listbox
         self.records_list.configure(yscrollcommand=self.scrollbar.set)
@@ -119,33 +165,64 @@ class App(Tk):
 
 
         """ Buttons """
+        buttonPadX = 10
+        buttonMargX = 5
+        buttonMargY = 5
+
         # Add button
-        self.add_btn = Button(self.buttonsFrame, text="Add Report", padx=5, pady=5, command=self.add_item)
-        self.add_btn.grid(row=0, column=0)
+        self.add_btn = Button(
+            self.buttonsFrame, 
+            text="Add Report", 
+            padx=buttonPadX, pady=5, 
+            command=self.add_item
+        )
+        self.add_btn.grid(
+            row=0, column=0,
+            padx=buttonMargX, pady=buttonMargY
+        )
 
         # Remove button
-        self.remove_btn = Button(self.buttonsFrame, text="Remove Report", padx=5, pady=5, command=self.remove_item)
-        self.remove_btn.grid(row=0, column=1)
+        self.remove_btn = Button(
+            self.buttonsFrame, 
+            text="Remove Report", 
+            padx=buttonPadX, pady=5, 
+            command=self.remove_item
+        )
+        self.remove_btn.grid(
+            row=0, column=1,
+            padx=buttonMargX, pady=buttonMargY
+            )
 
         # Update button
-        self.update_btn = Button(self.buttonsFrame, text="Update Report", padx=5, pady=5, command=self.update_item)
-        self.update_btn.grid(row=0, column=2)
+        self.update_btn = Button(self.buttonsFrame, text="Update Report", padx=buttonPadX, pady=5, command=self.update_item)
+        self.update_btn.grid(
+            row=0, column=2,
+            padx=buttonMargX, pady=buttonMargY
+        )
 
         # Clear button
-        self.clear_btn = Button(self.buttonsFrame, text="Clear Report", padx=5, pady=5, command=self.clear_text)
-        self.clear_btn.grid(row=0, column=3)
+        self.clear_btn = Button(self.buttonsFrame, text="Clear Report", padx=buttonPadX, pady=5, command=self.clear_text)
+        self.clear_btn.grid(
+            row=0, column=3,
+            padx=buttonMargX, pady=buttonMargY
+        )
 
         # Button that displays the plot
-        self.plot_btn = Button(master = self.plotButtonsFrame,
-                            command = self.showWeek,
-                            height = 1,
-                            width = 10,
-                            text = "Week")
-        self.plot_btn.grid(row = 0, column=0)
+        self.plot_btn = Button(
+            master = self.plotButtonsFrame,
+            command = self.showWeekPlot,
+            height = 1,
+            width = 10,
+            text = "Week"
+        )
+        self.plot_btn.grid(
+            row = 0, column=0,
+            padx=buttonMargX, pady=buttonMargY
+        )
 
         # Button that hides the plot
         self.plot_btn = Button(master = self.plotButtonsFrame,
-                            command = self.showMonth,
+                            command = self.showMonthPlot,
                             height = 1,
                             width = 10,
                             text = "Month")
@@ -153,7 +230,7 @@ class App(Tk):
 
         # Button that hides the plot
         self.plot_btn = Button(master = self.plotButtonsFrame,
-                            command = self.showYear,
+                            command = self.showYearPlot,
                             height = 1,
                             width = 10,
                             text = "Year")
@@ -162,24 +239,26 @@ class App(Tk):
         # Bind select
         self.records_list.bind('<<ListboxSelect>>', self.select_item)
 
-
+        
     """ Methods """
     def add_item(self):
         """
             Adds new item: inserts it into database and updates the list box.
         """
-        # Check empty input field
-        if self.date_text.get() == '' or self.food_text.get() == '' or self.transport_text.get() == '' or self.shopping_text.get() == '':
-            messagebox.showerror("Required Fields", "Please include all fields")
-            return
+        # Check if there is an empty input field
+        if self.checkEmptyFields() or self.checkFloatFields():
+            return None
+        
+        if self.check_exsisted():
+            return None
 
         # Insert data in database
-        self.db.insert(self.date_text.get(), self.food_text.get(), self.transport_text.get(), self.shopping_text.get()) 
-
-        # Clear list box because it's not up to date
-        self.records_list.delete(0, END) 
-        # Insert new item into list box
-        self.records_list.insert(END, (self.date_text.get(), self.food_text.get(), self.transport_text.get(), self.shopping_text.get()))
+        self.db.insert(
+            self.date_entry.get_date(), 
+            self.food_text.get(), 
+            self.transport_text.get(), 
+            self.shopping_text.get()
+        ) 
 
         # Clear all inputs
         self.clear_text()
@@ -192,37 +271,50 @@ class App(Tk):
         """
             Clears all text inputs.
         """
-        self.date_entry.delete(0, END)
         self.food_entry.delete(0, END)
         self.transport_entry.delete(0, END)
         self.shopping_entry.delete(0, END)
 
 
-    def plot(self):
-        """
-            Displays the plot.
-        """
-        
-        fig, ax = plt.subplots()
+    def checkEmptyFields(self):
+        thereIsEmptyField = self.food_text.get() == '' or self.transport_text.get() == '' or self.shopping_text.get() == ''
+        if thereIsEmptyField:
+            messagebox.showerror("Required Fields", "Please include all fields")
+
+        return thereIsEmptyField
     
-        # plotting the graph
-        ax.bar(self.dataForPlot[0], [x/1000 for x in self.dataForPlot[1]])
 
-        # X-ticks
-        xTicks = [el if index == 0 or index == len(self.dataForPlot[0])-1 else '' for index, el in enumerate(self.dataForPlot[0])]
+    def checkFloatFields(self):
+        try:
+            float(self.food_text.get())
+            float(self.transport_text.get())
+            float(self.shopping_text.get())
+            return False
+        except ValueError:
+            messagebox.showerror("Float Fields", "Please enter a float or an integer number")
+            return True
 
-        # Draw x-ticks
-        ax.axes.set_xticks(self.dataForPlot[0], xTicks)
-    
-        # creating the Tkinter canvas
-        # containing the Matplotlib figure
-        canvas = FigureCanvasTkAgg(
-            fig,
-            master = self.plotImageFrame)  
 
-        # placing the canvas on the Tkinter window
-        canvas.get_tk_widget().grid(row=0, column=0, sticky=(N, S, W, E))
+    def check_exsisted(self):
+        datesExisted = self.initDict.keys()
+        inputDate = date2str(self.date_entry.get_date())
 
+        if  inputDate in datesExisted:
+            if messagebox.askokcancel("Quit", "The record already exists. Do you want to update it?"):
+                id = self.db.get_id(inputDate)
+                self.db.update(
+                    id, 
+                    inputDate, 
+                    self.food_text.get(), 
+                    self.transport_text.get(), 
+                    self.shopping_text.get()
+                )
+                self.update_visual()
+                return True
+            else:
+                return True
+        else:
+            return False
 
     def populate(self):
         """
@@ -231,26 +323,18 @@ class App(Tk):
                 - Gets all data from the database and inserts it into list box;
         """
         self.records_list.delete(0, END)
-        for row in sortByDate(self.records, reverse=True):
+        for row in self.dataSorted:
             self.records_list.insert(END, row)
-
-
-    def prepare_plot_data(self):
-
-        # Sorting fetched data by date
-        rowsSorted = sortByDate(self.records)
-
-        # All dates and all total spendings in each day
-        dates, spendings = datesAndTotals(rowsSorted)
-        
-        # Returns the last days' spendings
-        return lastDatesSpendings(dates, spendings, period=self.period)
 
 
     def remove_item(self):
         """
             Removes selected item: removes it from the database and updates the list box.
         """
+        # Check if there is an empty input field
+        if self.checkEmptyFields() or self.checkFloatFields():
+            return None
+        
         self.db.remove(self.selected_item[0])
         self.clear_text()
         self.update_visual()
@@ -263,9 +347,8 @@ class App(Tk):
         index = self.records_list.curselection()
         if index:
             self.selected_item = self.records_list.get(index[0])
-
-            self.date_entry.delete(0, END)
-            self.date_entry.insert(END, self.selected_item[1])
+            
+            self.date_entry.set_date(str2date(self.selected_item[1]))
             self.food_entry.delete(0, END)
             self.food_entry.insert(END, self.selected_item[2])
             self.transport_entry.delete(0, END)
@@ -273,28 +356,28 @@ class App(Tk):
             self.shopping_entry.delete(0, END)
             self.shopping_entry.insert(END, self.selected_item[4])
 
+    
+    def showWeekPlot(self):
+        self.activePlotIndex = 0
+        
+        self.activePlot = self.plotsList[self.activePlotIndex]
 
-    def showWeek(self):
-        """ 
-            Displays on the plot the spendings made during the last week.
-        """
-        self.period = 7
         self.update_plot()
 
 
-    def showMonth(self):
-        """ 
-            Displays on the plot the spendings made during the month week.
-        """
-        self.period = 30
+    def showMonthPlot(self):
+        self.activePlotIndex = 1
+        
+        self.activePlot = self.plotsList[self.activePlotIndex]
+
         self.update_plot()
 
 
-    def showYear(self):
-        """ 
-            Displays on the plot the spendings made during the last year.
-        """
-        self.period = 365
+    def showYearPlot(self):
+        self.activePlotIndex = 2
+        
+        self.activePlot = self.plotsList[self.activePlotIndex]
+
         self.update_plot()
 
 
@@ -302,8 +385,11 @@ class App(Tk):
         """
             Updates edited item.
         """
-        print('Update')
-        self.db.update(self.selected_item[0], self.date_text.get(), self.food_text.get(), self.transport_text.get(), self.shopping_text.get())
+        # Check if there is an empty input field
+        if self.checkEmptyFields() or self.checkFloatFields():
+            return None
+        
+        self.db.update(self.selected_item[0], self.date_entry.get_date(), self.food_text.get(), self.transport_text.get(), self.shopping_text.get())
         self.update_visual()
 
 
@@ -311,8 +397,13 @@ class App(Tk):
         """
             The function updates the plot.
         """
-        self.dataForPlot = self.prepare_plot_data() 
-        self.plot()
+        # Canvas to draw a plot
+        self.canvas = FigureCanvasTkAgg(
+            self.activePlot,
+            master = self.plotImageFrame)
+        
+        # placing the canvas on the Tkinter window
+        self.canvas.get_tk_widget().grid(row=0, column=0, sticky=(N, S, W, E))
 
 
     def update_visual(self):
@@ -323,7 +414,21 @@ class App(Tk):
                 - updates the list-box;
                 - updates the plot.
         """
-        self.records = self.db.fetch()
-        self.dataForPlot = self.prepare_plot_data() 
+        self.records = self.db.fetch() 
+        self.dataConv = Data(self.records, self.fields)
+        self.initDict = self.dataConv.initDict
+        self.yearlyGraph = YearlyGraph(self.initDict)
+        self.plotsList = [self.dataConv.lastWeekPlotFig, 
+                          self.dataConv.lastMonthPlotFig,
+                          self.yearlyGraph.yearlyPlot]
+        self.activePlot = self.plotsList[self.activePlotIndex]
+        self.dataSorted = self.dataConv.dataSorted 
         self.populate()
-        self.plot()
+        self.update_plot()
+
+
+    def on_closing(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.quit()
+            self.destroy()
+

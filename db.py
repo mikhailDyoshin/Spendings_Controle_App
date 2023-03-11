@@ -35,6 +35,11 @@ class Database:
         )
         self.conn.commit()
 
+    def get_id(self, date):
+        res = self.cur.execute("SELECT id FROM spendings WHERE date=?", (date,))
+        id = res.fetchone()[0]
+        return id
+
     def __del__(self):
         self.conn.close()
     

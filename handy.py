@@ -1,6 +1,13 @@
 import datetime
 
 
+def date2str(date):
+    """
+        Turns date-object to str-object.
+    """
+    return str(date)
+
+
 def lastDatesSpendings(dates, spendings, period):
     today = datetime.date.today()
     
@@ -23,12 +30,11 @@ def lastDatesSpendings(dates, spendings, period):
     return (list(map(lambda x: str(x), lastData.keys())), list(lastData.values()))
 
 
-def str2date(s):
+def str2date(dateStr:str):
     """
-        Translates string to date-object
+        Translates string to date-object.
     """
-    year, month, day = s.split('.')
-    return datetime.date(int(year), int(month), int(day))
+    return datetime.date.fromisoformat(dateStr)
     
 
 def sortByDate(rows, reverse=False):
@@ -53,3 +59,4 @@ def datesAndTotals(rows):
 
     return (dates, spendings)
 
+# print(date2str(datetime.date.today()))
