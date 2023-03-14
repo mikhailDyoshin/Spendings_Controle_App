@@ -265,6 +265,8 @@ class YearlyGraph:
 
         bottom = [0 for x in months]
 
+        totalSpent = 0
+
         # Building the plot
         for field, fieldData in dictionary.items():
             if field != 'total': # to exclude the field "total"

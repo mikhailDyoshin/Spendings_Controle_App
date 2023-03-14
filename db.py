@@ -1,5 +1,6 @@
 import sqlite3 
 
+
 class Database:
     def __init__(self, file):
         self.conn = sqlite3.connect(file)

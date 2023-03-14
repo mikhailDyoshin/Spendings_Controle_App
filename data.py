@@ -5,14 +5,18 @@ from matplotlib.figure import Figure
 
 class Data():
     """ 
-        The class is created to prepare the data 
-        for displaying it in UI, 
-        after the data was fetched from the database.
+        The class is created to prepare the data, 
+        after the data was fetched from the database,
+        for displaying it in UI.
     """
 
     def __init__(self, data, fields):
         # The list of fetched data from the database
         self.dataSorted = self.sortByDate(data)
+
+        # The list of fetched data from the database 
+        # sorted from the most recent date to the latest one
+        self.dataSortedReverse = self.sortByDate(data, reverse=True)
 
         # The list of fields in the database table
         self.fields = fields

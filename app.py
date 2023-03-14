@@ -36,7 +36,8 @@ class App(Tk):
         self.dataConv = Data(self.records, self.fields)
 
         # sorted list of data fetched from the database
-        self.dataSorted = self.dataConv.dataSorted
+        # from the most recent to the latest date
+        self.dataSortedReverse = self.dataConv.dataSortedReverse
 
         # Initial dictionary
         self.initDict = self.dataConv.initDict
@@ -70,19 +71,19 @@ class App(Tk):
         self.inputsFrame.grid(column=0, row=0)
 
         # Frame for buttons
-        self.buttonsFrame = Frame(self.interactiveFrame, width=400, height=100, bg='grey')
+        self.buttonsFrame = Frame(self.interactiveFrame, width=400, height=100,)
         self.buttonsFrame.grid(row=1, column=0)
 
         # Frame for list box
-        self.listBoxFrame = Frame(self.interactiveFrame, width=400, height=600, bg='grey')
-        self.listBoxFrame.grid(row=2, column=0, pady=2)
+        self.listBoxFrame = Frame(self.interactiveFrame, width=400, height=600,)
+        self.listBoxFrame.grid(row=2, column=0, pady=20)
 
         # Frame for the plot and buttons that controle it
-        self.plotFrame = Frame(self.mainFrame,  width=400, height=1000, bg='grey', padx=5, pady=5)
+        self.plotFrame = Frame(self.mainFrame,  width=400, height=1000, padx=2, pady=2)
         self.plotFrame.grid(row=0,  column=1)
 
         self.plotButtonsFrame = Frame(self.plotFrame,  width=400, height=100)
-        self.plotButtonsFrame.grid(row=0,  column=0)
+        self.plotButtonsFrame.grid(row=0,  column=0, pady=2)
 
         self.plotImageFrame = Frame(self.plotFrame,  width=400, height=900)
         self.plotImageFrame.grid(row=1,  column=0)
@@ -145,14 +146,23 @@ class App(Tk):
         self.scrollbarPositionX = listPositionX + listColumnSpan + 1
 
         # Create list box
-        self.records_list = Listbox(self.listBoxFrame, border=3, width=50, height=10)
+        self.records_list = Listbox(
+            self.listBoxFrame, 
+            border=2, 
+            width=50, height=10,
+            font = "Helvetica",
+            bg = "grey",
+            fg = 'yellow',
+            selectbackground = "black",
+            selectforeground = "orange"
+        )
         self.records_list.grid(
             row=listPositionY, 
             column=listPositionX, 
             rowspan=1, 
             columnspan=listColumnSpan,  
             sticky=(N, W, E, S),
-            padx=5, pady=5
+            padx=10, pady=5,
         )
 
         # Create scrollbar
@@ -207,12 +217,14 @@ class App(Tk):
             padx=buttonMargX, pady=buttonMargY
         )
 
-        # Button that displays the plot
+        self.plotBtnsWidth = 21
+
+        # Button shows the week-plot
         self.plot_btn = Button(
             master = self.plotButtonsFrame,
             command = self.showWeekPlot,
             height = 1,
-            width = 10,
+            width = self.plotBtnsWidth,
             text = "Week"
         )
         self.plot_btn.grid(
@@ -220,28 +232,41 @@ class App(Tk):
             padx=buttonMargX, pady=buttonMargY
         )
 
-        # Button that hides the plot
-        self.plot_btn = Button(master = self.plotButtonsFrame,
-                            command = self.showMonthPlot,
-                            height = 1,
-                            width = 10,
-                            text = "Month")
-        self.plot_btn.grid(row = 0, column=1)
+        # Button shows the month-plot
+        self.plot_btn = Button(
+            master = self.plotButtonsFrame,
+            command = self.showMonthPlot,
+            height = 1,
+            width = self.plotBtnsWidth,
+            text = "Month"
+        )
+        self.plot_btn.grid(
+            row = 0, column=1, 
+            padx=buttonMargX, pady=buttonMargY
+        )
 
-        # Button that hides the plot
-        self.plot_btn = Button(master = self.plotButtonsFrame,
-                            command = self.showYearPlot,
-                            height = 1,
-                            width = 10,
-                            text = "Year")
-        self.plot_btn.grid(row = 0, column=2)
+        # Button shows the year-plot
+        self.plot_btn = Button(
+            master = self.plotButtonsFrame,
+            command = self.showYearPlot,
+            height = 1,
+            width = self.plotBtnsWidth,
+            text = "Year"
+        )
+        self.plot_btn.grid(
+            row = 0, column=2, 
+            padx=buttonMargX, pady=buttonMargY
+        )
 
         # Bind select
         self.records_list.bind('<<ListboxSelect>>', self.select_item)
 
+        """ Key bindings """
+        self.bind('<Return>', self.add_item)
+
         
     """ Methods """
-    def add_item(self):
+    def add_item(self, *event):
         """
             Adds new item: inserts it into database and updates the list box.
         """
@@ -249,7 +274,7 @@ class App(Tk):
         if self.checkEmptyFields() or self.checkFloatFields():
             return None
         
-        if self.check_exsisted():
+        if self.check_exsisted_while_adding():
             return None
 
         # Insert data in database
@@ -293,14 +318,14 @@ class App(Tk):
         except ValueError:
             messagebox.showerror("Float Fields", "Please enter a float or an integer number")
             return True
-
-
-    def check_exsisted(self):
+        
+    
+    def check_exsisted_while_adding(self):
         datesExisted = self.initDict.keys()
         inputDate = date2str(self.date_entry.get_date())
 
-        if  inputDate in datesExisted:
-            if messagebox.askokcancel("Quit", "The record already exists. Do you want to update it?"):
+        if inputDate in datesExisted:
+            if messagebox.askokcancel("Record's already exist.", "The record's already exist. Do you want to update it?"):
                 id = self.db.get_id(inputDate)
                 self.db.update(
                     id, 
@@ -315,6 +340,39 @@ class App(Tk):
                 return True
         else:
             return False
+        
+    
+    def check_existed_while_updatind(self):
+        datesExisted = self.initDict.keys()
+        inputDate = date2str(self.date_entry.get_date())
+
+        if inputDate in datesExisted:
+            return False
+        else:
+            if messagebox.askokcancel("No such record", "There is no record with given date. Do you want to create a new one?"):
+                self.db.insert(
+                    inputDate, 
+                    self.food_text.get(), 
+                    self.transport_text.get(), 
+                    self.shopping_text.get()
+                )
+                self.update_visual()
+                return True
+            else:
+                return True
+            
+
+    def check_existed_while_deleting(self):
+        datesExisted = self.initDict.keys()
+        inputDate = date2str(self.date_entry.get_date())
+
+        if inputDate in datesExisted:
+            return False
+        else:
+            messagebox.showerror("No such record", "There is no record with given date.")
+            return True
+
+
 
     def populate(self):
         """
@@ -323,7 +381,7 @@ class App(Tk):
                 - Gets all data from the database and inserts it into list box;
         """
         self.records_list.delete(0, END)
-        for row in self.dataSorted:
+        for row in self.dataSortedReverse:
             self.records_list.insert(END, row)
 
 
@@ -333,6 +391,9 @@ class App(Tk):
         """
         # Check if there is an empty input field
         if self.checkEmptyFields() or self.checkFloatFields():
+            return None
+        
+        if self.check_existed_while_deleting():
             return None
         
         self.db.remove(self.selected_item[0])
@@ -347,6 +408,7 @@ class App(Tk):
         index = self.records_list.curselection()
         if index:
             self.selected_item = self.records_list.get(index[0])
+            print(self.selected_item)
             
             self.date_entry.set_date(str2date(self.selected_item[1]))
             self.food_entry.delete(0, END)
@@ -389,6 +451,11 @@ class App(Tk):
         if self.checkEmptyFields() or self.checkFloatFields():
             return None
         
+        # Check if the record's exist
+        if self.check_existed_while_updatind():
+            return None
+
+        
         self.db.update(self.selected_item[0], self.date_entry.get_date(), self.food_text.get(), self.transport_text.get(), self.shopping_text.get())
         self.update_visual()
 
@@ -422,7 +489,7 @@ class App(Tk):
                           self.dataConv.lastMonthPlotFig,
                           self.yearlyGraph.yearlyPlot]
         self.activePlot = self.plotsList[self.activePlotIndex]
-        self.dataSorted = self.dataConv.dataSorted 
+        self.dataSortedReverse = self.dataConv.dataSortedReverse
         self.populate()
         self.update_plot()
 
