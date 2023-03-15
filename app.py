@@ -54,8 +54,6 @@ class App(Tk):
         # Default plot to display
         self.activePlot = self.plotsList[self.activePlotIndex]
 
-        # Selected item in the list box
-        self.selected_item = None
         
         """ Frames """
         # Frame for inputs, buttons and the list box
@@ -381,8 +379,10 @@ class App(Tk):
                 - Gets all data from the database and inserts it into list box;
         """
         self.records_list.delete(0, END)
-        for row in self.dataSortedReverse:
-            self.records_list.insert(END, row)
+        for date, data in self.initDict.items():
+            total = data['total']
+            dateDMY = isoform2dmY(date)
+            self.records_list.insert(END, f'{dateDMY} Spent: {total} rubles')
 
 
     def remove_item(self):
@@ -396,26 +396,35 @@ class App(Tk):
         if self.check_existed_while_deleting():
             return None
         
-        self.db.remove(self.selected_item[0])
+        self.db.remove(self.selectedID)
         self.clear_text()
         self.update_visual()
 
 
     def select_item(self, event):
         """
-            Inserts selected item's data into input fields.
+            Inserts selected item's data into input fields, 
+            gets the item's id.
         """
         index = self.records_list.curselection()
         if index:
-            self.selected_item = self.records_list.get(index[0])
+            selected_item = self.records_list.get(index[0])
             
-            self.date_entry.set_date(str2date(self.selected_item[1]))
+            date = selected_item[0:10]
+            
+            dateIsoformat = dmY2isoform(date)
+
+            self.selectedID = self.db.get_id(dateIsoformat)
+
+            data = self.initDict[dateIsoformat]
+
+            self.date_entry.set_date(str2date(dateIsoformat))
             self.food_entry.delete(0, END)
-            self.food_entry.insert(END, self.selected_item[2])
+            self.food_entry.insert(END, data['food'])
             self.transport_entry.delete(0, END)
-            self.transport_entry.insert(END, self.selected_item[3])
+            self.transport_entry.insert(END, data['transport'])
             self.shopping_entry.delete(0, END)
-            self.shopping_entry.insert(END, self.selected_item[4])
+            self.shopping_entry.insert(END, data['shopping'])
 
     
     def showWeekPlot(self):
@@ -455,7 +464,7 @@ class App(Tk):
             return None
 
         
-        self.db.update(self.selected_item[0], self.date_entry.get_date(), self.food_text.get(), self.transport_text.get(), self.shopping_text.get())
+        self.db.update(self.selectedID, self.date_entry.get_date(), self.food_text.get(), self.transport_text.get(), self.shopping_text.get())
         self.update_visual()
 
 
