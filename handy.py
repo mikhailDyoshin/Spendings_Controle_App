@@ -59,4 +59,16 @@ def datesAndTotals(rows):
 
     return (dates, spendings)
 
-# print(date2str(datetime.date.today()))
+
+def isoform2dmY(isoform:str) -> str:
+    """ Translates date's format: YYYY-MM-DD --> DD.MM.YYYY """
+    return str2date(isoform).strftime('%d.%m.%Y')
+
+
+def dmY2isoform(dmY:str) -> str:
+    """ Translates date's format: DD.MM.YYYY --> datetime.date-object """
+    dateParts = dmY.split('.')
+
+    day, month, year = list(map(lambda x: int(x), dateParts))
+
+    return date2str(datetime.date(year, month, day))

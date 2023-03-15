@@ -1,0 +1,40 @@
+@startuml SelectItemMethodDescription
+
+actor       User       as USER
+collections Listbox as LISTBOX
+entity Item as ITEM
+entity Date as DATE
+database Database as DB
+database Dictionary as DICT
+entity ID as ID
+collections Data as DATA
+entity UI as UI
+entity selectedItem as SELECTEDITEM
+
+== Item selection ==
+
+USER -> LISTBOX: User selects an item
+LISTBOX -> ITEM: Function takes the item
+
+== Getting item's date ==
+
+ITEM -> DATE: Function pulles a date\nfrom the item\nand transforms it\nfrom DD.MM.YYYY form\nto YYYY-MM-DD
+
+== Requesting the data ==
+
+DATE -> DB: SELECT id FROM database WHERE date=DATE
+DATE -> DICT: Accessing the dictionary with recorded data
+
+== Fetching the data ==
+
+DB -> ID: Fetching the id
+DICT -> DATA: Fetching the data
+
+== Saving the data ==
+
+ID -> SELECTEDITEM: Saving selected ID
+DATA -> SELECTEDITEM: Saving selected data
+
+== Showing the data ==
+
+DATA -> USER: Sending the data to the user 

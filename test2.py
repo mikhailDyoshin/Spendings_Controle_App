@@ -1,11 +1,9 @@
-import tkinter as tk
+import datetime
+from handy import str2date, date2str
 
-root = tk.Tk()
 
-w = tk.Label(root, text="red", bg="red", fg="white")
-w.pack(padx=5, pady=10, side='left')
-w = tk.Label(root, text="green", bg="green", fg="black")
-w.pack(padx=5, pady=20, side='left')
-w = tk.Label(root, text="blue", bg="blue", fg="white")
-w.pack(padx=5, pady=20, side='left')
-tk.mainloop()
+s = '2023-01-02'
+
+
+
+print(f'{s} --> {isoform2dmY(s)} --> {dmY2isoform(isoform2dmY(s))}')

@@ -408,7 +408,6 @@ class App(Tk):
         index = self.records_list.curselection()
         if index:
             self.selected_item = self.records_list.get(index[0])
-            print(self.selected_item)
             
             self.date_entry.set_date(str2date(self.selected_item[1]))
             self.food_entry.delete(0, END)
