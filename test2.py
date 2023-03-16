@@ -1,9 +1,17 @@
-import datetime
-from handy import str2date, date2str
+import tkinter as tk
+from customPlot import CustomPlot
 
 
-s = '2023-01-02'
+app = tk.Tk()
 
+canvW = 500
+canvH = 300
 
+d = {'May': 2000, 'June': 3000, 'July': 4000, 'Aug': 4543, 'Sep.': 1273, 'Oct.': 10047}
+# d = {'May': 200, 'June': 300, 'July': 400, 'Aug': 443,}
+canvas = CustomPlot(app, width=canvW, height=canvH, data=d)
+canvas.pack()
 
-print(f'{s} --> {isoform2dmY(s)} --> {dmY2isoform(isoform2dmY(s))}')
+# canvas.create_rectangle(10, 10, 20, 50, fill='yellow')
+
+tk.mainloop()
