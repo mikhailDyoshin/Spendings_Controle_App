@@ -1,9 +1,10 @@
 import tkinter as tk
+import numpy as np
 
 
 class CustomPlot(tk.Canvas):
 
-    def __init__(self, master, width, height, data):
+    def __init__(self, master, width, height):
         # Background colour of the canvas
         self.bg = '#131912'
 
@@ -13,9 +14,10 @@ class CustomPlot(tk.Canvas):
         self.width = width
         self.height = height
 
+        # The space between the end of an axes and a border of the canvas in pixels
         self.pad = 10
 
-        # The
+        # The coordinates of the origin
         self.zeroX = 45
         self.zeroY = self.height - 20
 
@@ -23,27 +25,20 @@ class CustomPlot(tk.Canvas):
         self.yAxesLength = self.zeroY-self.pad
         self.xAxesLength = self.width-self.pad-self.zeroX
 
+        # The space between the end of y-axes and its the greates tick in pixels
+        self.yAxPad = 15
+
         self.axesWidth = 4
 
         self.axesColour = "#dc6601"
         self.textColour = '#df5705'
         self.barsColour = '#f36b19'
+        self.barsOtline = '#131912'
 
         self.textFont = ('Prestige Elite Std', 10)
         
-        # Data to display
-        self.data = data
-
-        # The number of x-ticks
-        self.nXTicks = len(data)
-
-        self.xStep = int(self.xAxesLength/(self.nXTicks+1))
-
         # Draw axes
         self.create_axes()
-
-        # Draw data
-        self.draw_data()
 
 
     def create_axes(self):
@@ -64,18 +59,29 @@ class CustomPlot(tk.Canvas):
         )
 
 
+    def draw_data(self, data:dict):
+        X = data.keys()
+        Y = data.values()
+        nXTicks = len(data)
+        xStep = self.get_xTicks(nXTicks)
+        maxValue = max(Y)
 
-    def draw_data(self):
-        self.draw_xdata()
-        self.draw_ydata()
+        self.draw_xdata(X, xStep)
+        self.draw_ydata(maxValue)
+        self.draw_rects(
+            Y, 
+            self.get_coef(maxValue), 
+            self.zeroY-self.axesWidth,
+            xStep
+        )
 
     
-    def draw_xdata(self):
+    def draw_xdata(self, data, xStep):
 
         textPad = 10
         yTextCoord = self.zeroY+textPad
-        for index, xData in enumerate(self.data.keys()):
-            xTextCoord = self.zeroX+self.xStep*(index+1)
+        for index, xData in enumerate(data):
+            xTextCoord = self.zeroX+xStep*(index+1)
             
             # Draw ticks
             self.create_line(
@@ -92,13 +98,12 @@ class CustomPlot(tk.Canvas):
             )
 
 
-    def draw_ydata(self):
+    def draw_ydata(self, maxValue, roundDigits=2):
         nOfTicks = 4
-        maxValue = max(list(self.data.values()))
 
-        yStep = int(round(0.9*self.yAxesLength/nOfTicks, -1))
-        yTick = int(round(maxValue/nOfTicks, -1))
-
+        yStep = int(round((self.yAxesLength-self.yAxPad)/nOfTicks))
+        
+        yTick = round(maxValue/nOfTicks, roundDigits)
         textPad = 25
 
         xTextCoord = self.zeroX-textPad
@@ -108,29 +113,79 @@ class CustomPlot(tk.Canvas):
             
             yText = yTick*(index+1)
 
+            # Create ticks
             self.create_line(
                 self.zeroX+self.axesWidth/2, yTextCoord, 
                 self.zeroX-self.axesWidth/2, yTextCoord,
                 width=4
             )
+
+            # Create values
             self.create_text(
                 xTextCoord, yTextCoord, 
                 text=str(yText), fill=self.textColour,
                 font=self.textFont
             )
 
-        k = (self.zeroY-yTextCoord)/yText
-
+        
+    def draw_rects(self, data, coef, bottomY, xStep):
+        
         barWidth = 10
         barShift = int(barWidth/2)
-        for index, value in enumerate(self.data.values()):
-            barHeight = int(k*value)
+        for index, value in enumerate(data):
+            barHeight = int(coef*value)
             
-            xRectCoord = self.zeroX+self.xStep*(index+1)
+            xRectCoord = self.zeroX+xStep*(index+1)
 
             self.create_rectangle(
-                xRectCoord-barShift, self.zeroY-barHeight, 
-                xRectCoord+barShift, self.zeroY-self.axesWidth, 
-                fill=self.barsColour, outline='#db5200',
+                xRectCoord-barShift, bottomY-barHeight, 
+                xRectCoord+barShift, bottomY, 
+                fill=self.barsColour, outline=self.barsOtline,
                 width=2
             )
+
+
+    def mult_bars(self, data:dict):
+        
+        if data:
+            totals = np.zeros(len(list(data.values())[0]))
+        else:
+            print('Empty dictionary')
+            return None
+        
+        
+        for dataList in data.values():
+            totals += dataList
+
+        maxTotal = np.max(totals)
+
+        k = self.get_coef(maxTotal)
+
+
+    def get_coef(self, maxValue):
+        return (self.yAxesLength - self.yAxPad)/maxValue
+    
+    def get_xTicks(self, nOfTicks):
+        return int(self.xAxesLength/(nOfTicks+1))
+    
+
+    def form_bottoms_tops(self, data):
+        dataLists = list(data)
+        h = (len(data))
+        w = len(dataLists[0])
+
+        if data:
+            tops = np.zeros((h, w))
+            bottoms = np.zeros((h, w))
+        else:
+            print('No data')
+            return None
+        
+        term = np.zeros(w)
+        for index, dataList in enumerate(dataLists):
+            bottoms[index] += term
+            term += dataList
+            tops[index] += term
+
+        return (bottoms, tops)
+        

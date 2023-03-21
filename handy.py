@@ -72,3 +72,17 @@ def dmY2isoform(dmY:str) -> str:
     day, month, year = list(map(lambda x: int(x), dateParts))
 
     return date2str(datetime.date(year, month, day))
+
+
+def print_dict(d:dict):
+    print('\nd:{')
+    for key in d:
+        print(f'{key}: {d[key]}', end=',\n')
+    print('}')
+
+def print_list(l:list):
+    print('\nl:[')
+    for index, value in enumerate(l):
+        print(f'l[{index}] = {value}', end=',\n')
+    print(']')
+    

@@ -1,40 +1,32 @@
-from data import Data
-import matplotlib.pyplot as plt
+import math
 
 
-def print_dict(d:dict):
-    print('\nd:{')
-    for key in d:
-        print(f'{key}: {d[key]}', end=',\n')
-    print('}')
+def round_half_up(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.floor(n*multiplier + 1) / multiplier
 
-def print_list(l:list):
-    print('\nl:[')
-    for index, value in enumerate(l):
-        print(f'l[{index}] = {value}', end=',\n')
-    print(']')
+def round_up(number:float) -> float:
+    """
+        Rounds a number 
+        to the penultimate exponent 
+        that is in the number.
+    """
 
+    parts = str(number).split('.')
 
-data = [(1, '2023.2.25', 25, 100, 1000, 1125), 
-        (3, '2023.3.3', 250, 0, 1000, 1250), 
-        (2, '2023.2.18', 250, 10, 500, 760),
-        (4, '2023.3.6', 250, 100, 500, 1060),
-        ]
+    if len(parts) == 1:
+        if number < 10:
+            return number
+        
+        return int(round_half_up(number, -1))
+    
+    nFracts = len(parts[1])
+    return round_half_up(number, nFracts-1)
+    
 
-fields = ['food', 'transport', 'shopping', 'total']
+# numbers = list(range(100))
+numbers = [n/100 for n in range(100)]
 
-dataEntity = Data(data, fields)
-
-# print_list(dataEntity.data_sorted)
-
-# print_dict(dataEntity.initDict)
-
-# print_dict(dataEntity.lastDatesSpendings)
-
-# print_dict(dataEntity.dictForPlot)
-
-figureMonth = dataEntity.lastMonthPlotFig
-
-figureWeek = dataEntity.lastWeekPlotFig
-
-plt.show()
+for number in numbers:
+    print(f'{number} --> {round_up(number)}')
+    # print(round_half_up(number, -1))
