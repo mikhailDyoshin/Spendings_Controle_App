@@ -28,6 +28,9 @@ class CustomPlot(tk.Canvas):
         # The space between the end of y-axes and its the greates tick in pixels
         self.yAxPad = 15
 
+        # The width of a bar
+        self.barWidth = 10
+
         self.axesWidth = 4
 
         self.axesColour = "#dc6601"
@@ -37,8 +40,7 @@ class CustomPlot(tk.Canvas):
 
         self.textFont = ('Prestige Elite Std', 10)
         
-        # Draw axes
-        self.create_axes()
+        
 
 
     def create_axes(self):
@@ -60,6 +62,9 @@ class CustomPlot(tk.Canvas):
 
 
     def draw_data(self, data:dict):
+        # Draw axes
+        self.create_axes()
+
         X = data.keys()
         Y = data.values()
         nXTicks = len(data)
@@ -130,8 +135,7 @@ class CustomPlot(tk.Canvas):
         
     def draw_rects(self, data, coef, bottomY, xStep):
         
-        barWidth = 10
-        barShift = int(barWidth/2)
+        barShift = int(self.barWidth/2)
         for index, value in enumerate(data):
             barHeight = int(coef*value)
             
@@ -145,21 +149,21 @@ class CustomPlot(tk.Canvas):
             )
 
 
-    def mult_bars(self, data:dict):
+    def get_max_bar(self, data:list):
         
         if data:
-            totals = np.zeros(len(list(data.values())[0]))
+            totals = np.zeros(len(data[0]))
         else:
             print('Empty dictionary')
             return None
         
         
-        for dataList in data.values():
+        for dataList in data:
             totals += dataList
 
         maxTotal = np.max(totals)
 
-        k = self.get_coef(maxTotal)
+        return maxTotal
 
 
     def get_coef(self, maxValue):
@@ -169,10 +173,10 @@ class CustomPlot(tk.Canvas):
         return int(self.xAxesLength/(nOfTicks+1))
     
 
-    def form_bottoms_tops(self, data):
-        dataLists = list(data)
+    def form_bottoms_tops(self, data:list):
+    
         h = (len(data))
-        w = len(dataLists[0])
+        w = len(data[0])
 
         if data:
             tops = np.zeros((h, w))
@@ -182,10 +186,52 @@ class CustomPlot(tk.Canvas):
             return None
         
         term = np.zeros(w)
-        for index, dataList in enumerate(dataLists):
+        for index, dataList in enumerate(data):
             bottoms[index] += term
             term += dataList
             tops[index] += term
 
-        return (bottoms, tops)
+        maxValue = self.get_max_bar(data)
+        k = self.get_coef(maxValue)
+
+        return (np.around(k*bottoms), np.around(k*tops))
         
+
+    def draw_mult_rects(self, xStep, zeroLevel, bottoms, tops):
+
+        h, w = np.shape(bottoms)
+        barShift = int(self.barWidth/2)
+        for row in range(h):
+            xCoord = 0
+            for col in range(w):
+                xCoord = self.zeroX+xStep*(col+1)
+
+                print(xCoord, tops[row][col], bottoms[row][col])
+
+                self.create_rectangle(
+                    xCoord-barShift, zeroLevel-tops[row][col], 
+                    xCoord+barShift, zeroLevel-bottoms[row][col], 
+                    fill=self.barsColour, outline=self.barsOtline,
+                    width=2
+                )
+    
+    def draw_mult_bars(self, data:dict):
+        self.delete('all')
+
+        # Draw axes
+        self.create_axes()
+
+        nXTicks = len(data)
+        xStep = self.get_xTicks(nXTicks)
+        maxValue = self.get_max_bar(list(data.values()))
+        bottoms, tops = self.form_bottoms_tops(list(data.values()))
+
+        self.draw_xdata(data.keys(), xStep)
+        self.draw_ydata(maxValue)
+
+        self.draw_mult_rects(
+            xStep, 
+            self.zeroY-self.axesWidth,
+            bottoms,
+            tops,
+            )

@@ -17,8 +17,7 @@ d1 = {'One': [1, 2, 3], 'Two': [1, 2, 3], 'Three': [1, 2, 3]}
 
 # canvas.mult_bars(d1)
 
-canvas.form_bottoms_tops(d1.values())
-
+canvas.draw_mult_bars(d1)
 
 # canvas.create_rectangle(10, 10, 20, 50, fill='yellow')
 
