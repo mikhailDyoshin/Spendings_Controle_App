@@ -1,5 +1,6 @@
 import tkinter as tk
 import numpy as np
+from handy import *
 
 
 class CustomPlot(tk.Canvas):
@@ -41,8 +42,6 @@ class CustomPlot(tk.Canvas):
         self.textFont = ('Prestige Elite Std', 10)
         
         
-
-
     def create_axes(self):
         # x-axes
         self.create_line(
@@ -169,6 +168,7 @@ class CustomPlot(tk.Canvas):
     def get_coef(self, maxValue):
         return (self.yAxesLength - self.yAxPad)/maxValue
     
+    
     def get_xTicks(self, nOfTicks):
         return int(self.xAxesLength/(nOfTicks+1))
     
@@ -201,21 +201,23 @@ class CustomPlot(tk.Canvas):
 
         h, w = np.shape(bottoms)
         barShift = int(self.barWidth/2)
+        greenIncr = 30
+        blueIncr = 30
         for row in range(h):
             xCoord = 0
+            barColour = change_color(self.barsColour, (0, greenIncr*(row+1), blueIncr*row))
             for col in range(w):
                 xCoord = self.zeroX+xStep*(col+1)
-
-                print(xCoord, tops[row][col], bottoms[row][col])
 
                 self.create_rectangle(
                     xCoord-barShift, zeroLevel-tops[row][col], 
                     xCoord+barShift, zeroLevel-bottoms[row][col], 
-                    fill=self.barsColour, outline=self.barsOtline,
+                    fill=barColour, outline=self.barsOtline,
                     width=2
                 )
     
-    def draw_mult_bars(self, data:dict):
+
+    def draw_mult_bars(self, datesList:list, data:dict):
         self.delete('all')
 
         # Draw axes
@@ -226,7 +228,7 @@ class CustomPlot(tk.Canvas):
         maxValue = self.get_max_bar(list(data.values()))
         bottoms, tops = self.form_bottoms_tops(list(data.values()))
 
-        self.draw_xdata(data.keys(), xStep)
+        self.draw_xdata(datesList, xStep)
         self.draw_ydata(maxValue)
 
         self.draw_mult_rects(
@@ -235,3 +237,4 @@ class CustomPlot(tk.Canvas):
             bottoms,
             tops,
             )
+        

@@ -74,6 +74,26 @@ def dmY2isoform(dmY:str) -> str:
     return date2str(datetime.date(year, month, day))
 
 
+def rgb_to_hex(rgb:tuple) -> str:
+    return '#%02x%02x%02x' % rgb
+
+
+def hex_to_rgb(hex:str) -> tuple:
+    value = hex.lstrip('#')
+
+    rgbList = [int(value[i:i+2], 16) for i in range(0, len(value), 2)]
+
+    return tuple(rgbList)
+
+
+def change_color(hexColor:str, incrTuple:tuple=(0, 0, 0)) -> str:
+    rgbColor = hex_to_rgb(hexColor)
+    
+    rgbColorNew = tuple([(rgbColor[index]+incrTuple[index])%256 for index in range(len(rgbColor))])
+
+    return rgb_to_hex(rgbColorNew)
+
+
 def print_dict(d:dict):
     print('\nd:{')
     for key in d:

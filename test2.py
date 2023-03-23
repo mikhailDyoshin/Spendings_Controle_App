@@ -17,7 +17,7 @@ d1 = {'One': [1, 2, 3], 'Two': [1, 2, 3], 'Three': [1, 2, 3]}
 
 # canvas.mult_bars(d1)
 
-canvas.draw_mult_bars(d1)
+canvas.draw_mult_bars(['21.03.2023', '22.03.2023', '23.03.2023'], d1)
 
 # canvas.create_rectangle(10, 10, 20, 50, fill='yellow')
 
