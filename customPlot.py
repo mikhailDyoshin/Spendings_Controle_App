@@ -6,7 +6,7 @@ from handy import *
 class CustomPlot(tk.Canvas):
 
     def __init__(self, master, width, height):
-        # Background colour of the canvas
+        # Background Color of the canvas
         self.bg = '#131912'
 
         super().__init__(master=master, width=width, height=height, bg=self.bg)
@@ -26,7 +26,7 @@ class CustomPlot(tk.Canvas):
         self.yAxesLength = self.zeroY-self.pad
         self.xAxesLength = self.width-self.pad-self.zeroX
 
-        # The space between the end of y-axes and its the greates tick in pixels
+        # The space between the end of y-axes and its the greatest tick in pixels
         self.yAxPad = 15
 
         # The width of a bar
@@ -34,53 +34,63 @@ class CustomPlot(tk.Canvas):
 
         self.axesWidth = 4
 
-        self.axesColour = "#dc6601"
-        self.textColour = '#df5705'
-        self.barsColour = '#f36b19'
+        # The width of the legend
+        self.legendWidth = 0
+
+        self.axesColor = "#dc6601"
+        self.textColor = '#df5705'
+        self.barsColor = '#f36b19'
         self.barsOtline = '#131912'
 
         self.textFont = ('Prestige Elite Std', 10)
+
+        # Cached data
+        self.datesList = None
+        self.data = None
+
+        # Bars' colors
+        self.barsColors = []
         
         
     def create_axes(self):
         # x-axes
         self.create_line(
             self.zeroX, self.zeroY,
-            self.width-self.pad, self.zeroY,
-            fill=self.axesColour, capstyle='round',
+            self.zeroX + self.xAxesLength, self.zeroY,
+            fill=self.axesColor, capstyle='round',
             width=self.axesWidth,
         )
 
         # y-axes
         self.create_line(
             self.zeroX, self.zeroY,
-            self.zeroX, self.pad,
-            fill=self.axesColour, capstyle='round',
+            self.zeroX, self.zeroY-self.yAxesLength,
+            fill=self.axesColor, capstyle='round',
             width=self.axesWidth,
         )
 
 
-    def draw_data(self, data:dict):
-        # Draw axes
-        self.create_axes()
+    # def draw_data(self, data:dict):
+    #     # Draw axes
+    #     self.create_axes()
 
-        X = data.keys()
-        Y = data.values()
-        nXTicks = len(data)
-        xStep = self.get_xTicks(nXTicks)
-        maxValue = max(Y)
+    #     X = data.keys()
+    #     Y = data.values()
+    #     nXTicks = len(data)
+    #     xStep = self.get_xTicks(nXTicks)
+    #     maxValue = max(Y)
 
-        self.draw_xdata(X, xStep)
-        self.draw_ydata(maxValue)
-        self.draw_rects(
-            Y, 
-            self.get_coef(maxValue), 
-            self.zeroY-self.axesWidth,
-            xStep
-        )
+    #     self.draw_xdata(X, xStep)
+    #     self.draw_ydata(maxValue)
+    #     self.draw_rects(
+    #         Y, 
+    #         self.get_coef(maxValue), 
+    #         self.zeroY-self.axesWidth,
+    #         xStep
+    #     )
 
     
-    def draw_xdata(self, data, xStep):
+    def draw_xdata(self, data, xStep, drawAllValues):
 
         textPad = 10
         yTextCoord = self.zeroY+textPad
@@ -94,12 +104,20 @@ class CustomPlot(tk.Canvas):
                 width=4,
             )
             
-            # Draw labels
-            self.create_text(
-                xTextCoord, yTextCoord, 
-                text=xData, fill=self.textColour,
-                font=self.textFont,
-            )
+            if drawAllValues:
+                self.create_text(
+                    xTextCoord, yTextCoord, 
+                    text=xData, fill=self.textColor,
+                    font=self.textFont,
+                )
+            else:
+                if index==0 or index==(len(data)-1):
+                    # Draw labels
+                    self.create_text(
+                        xTextCoord, yTextCoord, 
+                        text=xData, fill=self.textColor,
+                        font=self.textFont,
+                    )
 
 
     def draw_ydata(self, maxValue, roundDigits=2):
@@ -127,7 +145,7 @@ class CustomPlot(tk.Canvas):
             # Create values
             self.create_text(
                 xTextCoord, yTextCoord, 
-                text=str(yText), fill=self.textColour,
+                text=str(yText), fill=self.textColor,
                 font=self.textFont
             )
 
@@ -143,7 +161,7 @@ class CustomPlot(tk.Canvas):
             self.create_rectangle(
                 xRectCoord-barShift, bottomY-barHeight, 
                 xRectCoord+barShift, bottomY, 
-                fill=self.barsColour, outline=self.barsOtline,
+                fill=self.barsColor, outline=self.barsOtline,
                 width=2
             )
 
@@ -205,31 +223,40 @@ class CustomPlot(tk.Canvas):
         blueIncr = 30
         for row in range(h):
             xCoord = 0
-            barColour = change_color(self.barsColour, (0, greenIncr*(row+1), blueIncr*row))
+            barColor = change_color(self.barsColor, (0, greenIncr*(row+1), blueIncr*row))
+            self.barsColors.insert(0, barColor)
             for col in range(w):
                 xCoord = self.zeroX+xStep*(col+1)
 
                 self.create_rectangle(
                     xCoord-barShift, zeroLevel-tops[row][col], 
                     xCoord+barShift, zeroLevel-bottoms[row][col], 
-                    fill=barColour, outline=self.barsOtline,
+                    fill=barColor, outline=self.barsOtline,
                     width=2
                 )
     
 
-    def draw_mult_bars(self, datesList:list, data:dict):
+    def draw_mult_bars_plot(self, datesList:list, data:dict, drawAllValues:bool=False):
         self.delete('all')
+
+        self.datesList = datesList
+        self.data = data
 
         # Draw axes
         self.create_axes()
 
-        nXTicks = len(data)
+        nXTicks = len(datesList)
         xStep = self.get_xTicks(nXTicks)
         maxValue = self.get_max_bar(list(data.values()))
         bottoms, tops = self.form_bottoms_tops(list(data.values()))
 
-        self.draw_xdata(datesList, xStep)
+        if drawAllValues:
+            self.draw_xdata(datesList, xStep, drawAllValues)
+        else:
+            self.draw_xdata(datesList, xStep, drawAllValues)
+
         self.draw_ydata(maxValue)
+
 
         self.draw_mult_rects(
             xStep, 
@@ -238,3 +265,52 @@ class CustomPlot(tk.Canvas):
             tops,
             )
         
+
+    def changeCoords(self, legendWidth, barWidth):
+        self.legendWidth = legendWidth
+
+        self.xAxesLength = self.width-self.pad-self.zeroX-self.legendWidth
+
+        self.barWidth = barWidth
+
+    
+    def drawDevider(self):
+
+        a = self.create_line(
+            self.width-self.legendWidth, 0,
+            self.width-self.legendWidth, self.height,
+            fill=self.axesColor, capstyle='round',
+            width=2,
+        )
+
+
+    def drawLegendsContent(self, keys:list):
+        d = 16
+        padX = 10
+        padY = 20
+        ovalSpace = d+15
+        xInit = self.width-self.legendWidth+padX
+        yInit = padY
+        yStep = 30
+        for index, key in enumerate(keys):
+            self.create_oval(
+                xInit, yInit+yStep*index,
+                xInit+d, (yInit+d)+yStep*index,
+                fill=self.barsColors[index])
+            
+            self.create_text(
+                xInit+ovalSpace, yInit+yStep*index,
+                anchor='nw',
+                fill=self.textColor, text=key,
+                font=self.textFont,
+            )
+        
+
+    def drawLegend(self, keys:list, legendWidth:int=150, barWidth:int=10):
+        self.changeCoords(legendWidth, barWidth)
+
+        self.draw_mult_bars_plot(self.datesList, self.data)
+
+        self.drawDevider()
+
+        self.drawLegendsContent(keys)
