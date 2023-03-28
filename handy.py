@@ -138,7 +138,7 @@ def draw_power_symbol(exponent:int):
     return '\u00D7'+str(base)+powerStr
 
 
-def get_exp_notation(number:float) -> tuple:
+def get_exp_notation(number:float, precision:int=2) -> tuple:
 
     """
         Returns a tuple that represents 
@@ -148,7 +148,9 @@ def get_exp_notation(number:float) -> tuple:
         and 2 is its exponent.
     """
 
-    expNotNum = '%.2E' % number
+    formatSpecifier = '%.' + str(precision) + 'E'
+
+    expNotNum = formatSpecifier % number
 
     baseNum , exponent = expNotNum.split('E')
 

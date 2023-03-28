@@ -18,12 +18,14 @@ class CustomPlot(tk.Canvas):
         # The space between the end of an axes and a border of the canvas in pixels
         self.pad = 10
 
+        self.padY = 40
+
         # The coordinates of the origin
         self.zeroX = 45
         self.zeroY = self.height - 20
 
         # x- and y-axes lenghts
-        self.yAxesLength = self.zeroY-self.pad
+        self.yAxesLength = self.zeroY-self.padY
         self.xAxesLength = self.width-self.pad-self.zeroX
 
         # The space between the end of y-axes and its the greatest tick in pixels
@@ -103,7 +105,7 @@ class CustomPlot(tk.Canvas):
                 xTextCoord, self.zeroY+self.axesWidth/2,
                 width=4,
             )
-            print(xData)
+            
             if drawAllValues:
                 self.create_text(
                     xTextCoord, yTextCoord, 
@@ -236,7 +238,7 @@ class CustomPlot(tk.Canvas):
                 )
     
 
-    def draw_mult_bars_plot(self, datesList:list, data:dict, drawAllValues:bool=False):
+    def draw_mult_bars_plot(self, datesList:list, data:dict, drawAllValues:bool=True):
         self.delete('all')
 
         self.datesList = datesList
@@ -247,13 +249,16 @@ class CustomPlot(tk.Canvas):
 
         nXTicks = len(datesList)
         xStep = self.get_xTicks(nXTicks)
-        maxValue = self.get_max_bar(list(data.values()))
-        bottoms, tops = self.form_bottoms_tops(list(data.values()))
 
-        # if drawAllValues:
-        #     self.draw_xdata(datesList, xStep, drawAllValues)
-        # else:
-        #     self.draw_xdata(datesList, xStep, drawAllValues)
+        maxValue = self.get_max_bar(list(data.values()))
+        maxValue, exponent = get_exp_notation(maxValue)
+        maxValue = float(maxValue)
+        exponentSymbol = draw_power_symbol(exponent)
+
+        self.drawExponent(exponentSymbol)
+
+        print(exponentSymbol)
+        bottoms, tops = self.form_bottoms_tops(list(data.values()))
 
         self.draw_xdata(datesList, xStep, drawAllValues)
         self.draw_ydata(maxValue)
@@ -315,3 +320,10 @@ class CustomPlot(tk.Canvas):
         self.drawDevider()
 
         self.drawLegendsContent(keys)
+
+
+    def drawExponent(self, exponent:str):
+        marginBottom = 10
+        x = self.zeroX
+        y = self.zeroY-self.yAxesLength - marginBottom
+        self.create_text(x, y, text = exponent, fill=self.textColor, font=self.textFont, anchor='s')

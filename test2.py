@@ -13,7 +13,7 @@ canvas = CustomPlot(app, width=canvW, height=canvH)
 canvas.pack()
 # canvas.draw_data(d)
 
-d1 = {'One': [1, 2, 3, 2, 3], 'Two': [1, 2, 3, 1, 3], 'Three': [1, 2, 3, 1, 3],}
+d1 = {'One': [1, 2, 3, 2, 100], 'Two': [1, 2, 3, 1, 3], 'Three': [1, 2, 3, 1, 3],}
 
 # canvas.mult_bars(d1)
 
