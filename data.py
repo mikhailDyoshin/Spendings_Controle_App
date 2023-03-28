@@ -1,6 +1,7 @@
 import datetime
 from handy import date2str, str2date
 from matplotlib.figure import Figure
+from YearData import YearData
 
 
 class Data():
@@ -46,14 +47,14 @@ class Data():
         self.lastMonthDictForPlot = self.dict_for_plot(self.lastMonthDataSorted)
         self.lastWeekhDictForPlot = self.dict_for_plot(self.lastWeekDataSorted)
 
-        # The figures of the plots for the last periods spendings
-        self.lastMonthPlotFig = self.plot(self.lastMonthDatesSorted, 
-        self.lastMonthDictForPlot, 
-        self.month)
+        # The entity of the class where data of the last year period is formed
+        self.yearData = YearData(self.initDict)
 
-        self.lastWeekPlotFig = self.plot(self.lastWeekDatesSorted, 
-        self.lastWeekhDictForPlot, 
-        self.week)
+        # List of months that belong to the last year period
+        self.monthsList = self.yearData.monthsList
+
+        # The dictionary for plot to display the data of the last year period
+        self.lastYearDictForPlot = self.yearData.dictForPlot
 
 
     """ Methods """
@@ -95,18 +96,6 @@ class Data():
         return dict(zip(lastDatesSorted, lastDataSorted))
 
 
-    def date_thinner(self, date):
-        """
-            Deletes unneccery zero in a date: 2023.02.05 -> 2023.2.5.
-        """
-        if date[5] and date[8] == '0':
-            return date[0:5]+date[6:8]+date[9:]
-        elif date[8] == '0':
-            return date[0:8]+date[9:]
-        elif date[5] == '0':
-            return date[0:5] + date[6:]
-
-
     def date2strList(self, dates:list) -> list:
         """
             Turns date-object into str-object: (date object)2023-02-05 -> (str object)2023.2.5
@@ -125,10 +114,19 @@ class Data():
 
     def last_dates_spendings(self, period:int) -> dict:
         """
-            Form the dictionary of day spendings records 
+            Forms the dictionary of dictionaries: keys are dates 
+            and values are dictionaries that store spending records  
             that exist in database 
-            and of those that haven't been recorded yet 
+            and that haven't been recorded yet 
             (the last are defined as dictionaries with zeroes in fields).
+
+            The dictionary looks like the following one:
+
+            {
+                date0: {field0: value00, field1: value01, ...},
+                ...
+                dateN: {field0: valueN0, field1: valueN1, ...}                
+            }
         """
         data_dict = self.initDict
 
@@ -162,45 +160,12 @@ class Data():
         keys = self.fields
 
         # Form a dictionary with values as empty lists
-        dictForPlot = {key:[] for key in keys}
+        dictForPlot = {key:[] for key in keys if key != 'total'}
         
         # Form the result dictionary
         for dictionary in sortedListOfDicts:
             for key in dictionary:
-                dictForPlot[key].append(dictionary[key])
+                if key != 'total':
+                    dictForPlot[key].append(dictionary[key])
         
         return dictForPlot
-
-
-    def plot(self, dates:list, dictionary:dict, period:int):
-        """
-            The function builds the plot.
-        """
-
-        # the width of the bars: can also be len(x) sequence
-        width = 0.6  
-
-        fig = Figure(figsize=(5, 5), dpi=100)
-        ax = fig.add_subplot(111)
-
-
-        bottom = [0 for x in dates]
-
-        # Building the plot
-        for field, fieldData in dictionary.items():
-            if field != 'total': # to exclude the last field (total)
-                p = ax.bar(dates, fieldData, width, label=field, bottom=bottom)
-
-                for index, value in enumerate(fieldData):
-                    bottom[index] += value
-            else:
-                totalSpent = sum(fieldData)
-
-        # X-ticks
-        xTicks = [el if index == 0 or index == len(dates)-1 else '' for index, el in enumerate(dates)]
-
-        ax.set_title(f'Spendings for the last {period} days: {totalSpent} r.')
-        ax.set_xticks(dates, xTicks)
-        ax.legend()
-
-        return fig

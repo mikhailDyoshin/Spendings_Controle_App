@@ -3,7 +3,7 @@ from handy import str2date
 import datetime
 
 
-class YearlyGraph:
+class YearData:
     def __init__(self, initDict):
         # The dictionary where all calculation start
         self.initDict = initDict
@@ -25,9 +25,8 @@ class YearlyGraph:
             self.filteredDict, 
             self.emptyDictFormPlot, 
             self.monthOrder)
-
-        # The plot
-        self.yearlyPlot = self.plot(self.monthsList, self.dictForPlot)
+        
+        print(self.dictForPlot)
 
 
     """ *********** Methods that forms the list of months *********** """
@@ -194,7 +193,9 @@ class YearlyGraph:
             'key2': {...}, ...,
             'keyM': {...}
             }
+
             and creates a dictionary like:
+
             {
             'field1': [0, 0, ..., 0], 
             'field2': [...], 
@@ -203,7 +204,7 @@ class YearlyGraph:
             },
             where each list stores 12 zeros.
         """
-        return {key: self.zeros_list(12) for key in self.fieldsPuller(dictionary)}
+        return {key: self.zeros_list(12) for key in self.fieldsPuller(dictionary) if key != 'total'}
 
 
     def dict_for_plot_former(self, dictionary:dict, dictForPlot:dict, order:list) -> dict:
@@ -250,36 +251,3 @@ class YearlyGraph:
                 dictForPlot[field][index] += dictionary[date][field]
 
         return dictForPlot
-
-
-    def plot(self, months:list, dictionary:dict):
-        """
-            The function builds the bar-plot.
-        """
-
-        # the width of the bars: can also be len(x) sequence
-        width = 0.6  
-
-        fig = Figure(figsize=(5, 5), dpi=100)
-        ax = fig.add_subplot(111)
-
-        bottom = [0 for x in months]
-
-        totalSpent = 0
-
-        # Building the plot
-        for field, fieldData in dictionary.items():
-            if field != 'total': # to exclude the field "total"
-                p = ax.bar(months, fieldData, width, label=field, bottom=bottom)
-
-                for index, value in enumerate(fieldData):
-                    bottom[index] += value
-
-                ax.bar_label(p, label_type='center')
-            else:
-                totalSpent = sum(fieldData)
-
-        ax.set_title(f'Spendings for the last year: {totalSpent} r.')
-        ax.legend()
-
-        return fig

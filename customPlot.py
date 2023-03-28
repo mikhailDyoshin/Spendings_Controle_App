@@ -127,7 +127,7 @@ class CustomPlot(tk.Canvas):
 
         yStep = int(round((self.yAxesLength-self.yAxPad)/nOfTicks))
         
-        yTick = round(maxValue/nOfTicks, roundDigits)
+        yTick = maxValue/nOfTicks
         textPad = 25
 
         xTextCoord = self.zeroX-textPad
@@ -135,7 +135,7 @@ class CustomPlot(tk.Canvas):
              
             yTextCoord = self.zeroY-yStep*(index+1)
             
-            yText = yTick*(index+1)
+            yText = round(yTick*(index+1), roundDigits)
 
             # Create ticks
             self.create_line(
@@ -151,7 +151,6 @@ class CustomPlot(tk.Canvas):
                 font=self.textFont
             )
 
-        
     def draw_rects(self, data, coef, bottomY, xStep):
         
         barShift = int(self.barWidth/2)
@@ -238,7 +237,7 @@ class CustomPlot(tk.Canvas):
                 )
     
 
-    def draw_mult_bars_plot(self, datesList:list, data:dict, drawAllValues:bool=True):
+    def draw_mult_bars_plot(self, datesList:list, data:dict, drawAllValues:bool=False):
         self.delete('all')
 
         self.datesList = datesList
@@ -255,9 +254,8 @@ class CustomPlot(tk.Canvas):
         maxValue = float(maxValue)
         exponentSymbol = draw_power_symbol(exponent)
 
-        self.drawExponent(exponentSymbol)
+        self.draw_exponent(exponentSymbol)
 
-        print(exponentSymbol)
         bottoms, tops = self.form_bottoms_tops(list(data.values()))
 
         self.draw_xdata(datesList, xStep, drawAllValues)
@@ -272,7 +270,7 @@ class CustomPlot(tk.Canvas):
             )
         
 
-    def changeCoords(self, legendWidth, barWidth):
+    def change_coords(self, legendWidth, barWidth):
         self.legendWidth = legendWidth
 
         self.xAxesLength = self.width-self.pad-self.zeroX-self.legendWidth
@@ -280,7 +278,7 @@ class CustomPlot(tk.Canvas):
         self.barWidth = barWidth
 
     
-    def drawDevider(self):
+    def draw_devider(self):
 
         a = self.create_line(
             self.width-self.legendWidth, 0,
@@ -290,7 +288,7 @@ class CustomPlot(tk.Canvas):
         )
 
 
-    def drawLegendsContent(self, keys:list):
+    def draw_legends_content(self, keys:list):
         d = 16
         padX = 10
         padY = 20
@@ -312,17 +310,17 @@ class CustomPlot(tk.Canvas):
             )
         
 
-    def drawLegend(self, keys:list, legendWidth:int=150, barWidth:int=10):
-        self.changeCoords(legendWidth, barWidth)
+    def draw_legend(self, keys:list, legendWidth:int=150, barWidth:int=10):
+        self.change_coords(legendWidth, barWidth)
 
-        self.draw_mult_bars_plot(self.datesList, self.data, drawAllValues=False)
+        self.draw_mult_bars_plot(self.datesList, self.data)
 
-        self.drawDevider()
+        self.draw_devider()
 
-        self.drawLegendsContent(keys)
+        self.draw_legends_content(keys)
 
 
-    def drawExponent(self, exponent:str):
+    def draw_exponent(self, exponent:str):
         marginBottom = 10
         x = self.zeroX
         y = self.zeroY-self.yAxesLength - marginBottom

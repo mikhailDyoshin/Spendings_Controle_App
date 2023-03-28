@@ -5,9 +5,8 @@ from handy import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from db import Database
 from data import Data
-from YearlyGraph import YearlyGraph
-from tkcalendar import DateEntry
 from myDateEntry import MyDateEntry
+from customPlot import CustomPlot
 
 
 class App(Tk):
@@ -33,26 +32,23 @@ class App(Tk):
         self.records = self.db.fetch()
 
         # data-conveyer
-        self.dataConv = Data(self.records, self.fields)
+        self.data = Data(self.records, self.fields)
 
-        # sorted list of data fetched from the database
-        # from the most recent to the latest date
-        self.dataSortedReverse = self.dataConv.dataSortedReverse
+        # Initial dictionary where dates and data are stored
+        self.initDict = self.data.initDict
 
-        # Initial dictionary
-        self.initDict = self.dataConv.initDict
+        # The list of tuple that stores dates and data for the plots
+        self.dataToDisplay = [
+            (self.data.lastWeekDatesSorted, self.data.lastWeekhDictForPlot),
+            (self.data.lastMonthDatesSorted, self.data.lastMonthDictForPlot),
+            (self.data.monthsList, self.data.lastYearDictForPlot),
+        ]
 
-        # Plot of the last year spendings
-        self.yearlyGraph = YearlyGraph(self.initDict)
-
-        # The list of plots
-        self.plotsList = [self.dataConv.lastWeekPlotFig, 
-                          self.dataConv.lastMonthPlotFig,
-                          self.yearlyGraph.yearlyPlot]
         # Default plot's index in the list of plots
         self.activePlotIndex = 0
-        # Default plot to display
-        self.activePlot = self.plotsList[self.activePlotIndex]
+
+        self.activeDatesList = self.dataToDisplay[self.activePlotIndex][0]
+        self.activeData = self.dataToDisplay[self.activePlotIndex][1]
 
         
         """ Frames """
@@ -90,12 +86,19 @@ class App(Tk):
 
         """ Plot's canvas """
         # Canvas to draw a plot
-        self.canvas = FigureCanvasTkAgg(
-            self.activePlot,
-            master = self.plotImageFrame)
+        self.canvas = CustomPlot(
+            master = self.plotImageFrame,
+            width=800, height=500,
+            )
         
         # placing the canvas on the Tkinter window
-        self.canvas.get_tk_widget().grid(row=0, column=0, sticky=(N, S, W, E))
+        self.canvas.grid(row=0, column=0, sticky=(N, S, W, E))
+
+        # Draw the plot
+        self.canvas.draw_mult_bars_plot(self.activeDatesList, self.activeData)
+
+        # Display legend
+        self.canvas.draw_legend(self.fields[:-1])
 
         """ Date field """
         # Date label
@@ -106,6 +109,7 @@ class App(Tk):
             pady=10, padx=5
         )
         self.date_label.grid(row=0, column=0,)
+        
         # Date input
         self.date_entry = MyDateEntry(self.inputsFrame, align='right', width=14)
         self.date_entry.grid(row=0, column=1,)
@@ -382,7 +386,7 @@ class App(Tk):
         for date, data in self.initDict.items():
             total = data['total']
             dateDMY = isoform2dmY(date)
-            self.records_list.insert(END, f'{dateDMY} Spent: {total} rubles')
+            self.records_list.insert(0, f'{dateDMY} Spent: {total} rubles')
 
 
     def remove_item(self):
@@ -429,16 +433,16 @@ class App(Tk):
     
     def showWeekPlot(self):
         self.activePlotIndex = 0
-        
-        self.activePlot = self.plotsList[self.activePlotIndex]
 
+        self.update_active_data()
+        
         self.update_plot()
 
 
     def showMonthPlot(self):
         self.activePlotIndex = 1
         
-        self.activePlot = self.plotsList[self.activePlotIndex]
+        self.update_active_data()
 
         self.update_plot()
 
@@ -446,9 +450,22 @@ class App(Tk):
     def showYearPlot(self):
         self.activePlotIndex = 2
         
-        self.activePlot = self.plotsList[self.activePlotIndex]
+        self.update_active_data()
 
         self.update_plot()
+
+    
+    def update_active_data(self):
+        self.activeDatesList = self.dataToDisplay[self.activePlotIndex][0]
+        self.activeData = self.dataToDisplay[self.activePlotIndex][1]
+
+    
+    def update_displayable_data(self):
+        self.dataToDisplay = [
+            (self.data.lastWeekDatesSorted, self.data.lastWeekhDictForPlot),
+            (self.data.lastMonthDatesSorted, self.data.lastMonthDictForPlot),
+            (self.data.monthsList, self.data.lastYearDictForPlot),
+        ]
 
 
     def update_item(self):
@@ -473,12 +490,11 @@ class App(Tk):
             The function updates the plot.
         """
         # Canvas to draw a plot
-        self.canvas = FigureCanvasTkAgg(
-            self.activePlot,
-            master = self.plotImageFrame)
+        self.canvas.draw_mult_bars_plot(self.activeDatesList, self.activeData)
+        self.canvas.draw_legend(self.fields[:-1])
         
         # placing the canvas on the Tkinter window
-        self.canvas.get_tk_widget().grid(row=0, column=0, sticky=(N, S, W, E))
+        self.canvas.grid(row=0, column=0, sticky=(N, S, W, E))
 
 
     def update_visual(self):
@@ -490,14 +506,10 @@ class App(Tk):
                 - updates the plot.
         """
         self.records = self.db.fetch() 
-        self.dataConv = Data(self.records, self.fields)
-        self.initDict = self.dataConv.initDict
-        self.yearlyGraph = YearlyGraph(self.initDict)
-        self.plotsList = [self.dataConv.lastWeekPlotFig, 
-                          self.dataConv.lastMonthPlotFig,
-                          self.yearlyGraph.yearlyPlot]
-        self.activePlot = self.plotsList[self.activePlotIndex]
-        self.dataSortedReverse = self.dataConv.dataSortedReverse
+        self.data = Data(self.records, self.fields)
+        self.initDict = self.data.initDict
+        self.update_displayable_data()
+        self.update_active_data()
         self.populate()
         self.update_plot()
 
