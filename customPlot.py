@@ -103,7 +103,7 @@ class CustomPlot(tk.Canvas):
                 xTextCoord, self.zeroY+self.axesWidth/2,
                 width=4,
             )
-            
+            print(xData)
             if drawAllValues:
                 self.create_text(
                     xTextCoord, yTextCoord, 
@@ -250,11 +250,12 @@ class CustomPlot(tk.Canvas):
         maxValue = self.get_max_bar(list(data.values()))
         bottoms, tops = self.form_bottoms_tops(list(data.values()))
 
-        if drawAllValues:
-            self.draw_xdata(datesList, xStep, drawAllValues)
-        else:
-            self.draw_xdata(datesList, xStep, drawAllValues)
+        # if drawAllValues:
+        #     self.draw_xdata(datesList, xStep, drawAllValues)
+        # else:
+        #     self.draw_xdata(datesList, xStep, drawAllValues)
 
+        self.draw_xdata(datesList, xStep, drawAllValues)
         self.draw_ydata(maxValue)
 
 
@@ -309,7 +310,7 @@ class CustomPlot(tk.Canvas):
     def drawLegend(self, keys:list, legendWidth:int=150, barWidth:int=10):
         self.changeCoords(legendWidth, barWidth)
 
-        self.draw_mult_bars_plot(self.datesList, self.data)
+        self.draw_mult_bars_plot(self.datesList, self.data, drawAllValues=False)
 
         self.drawDevider()
 

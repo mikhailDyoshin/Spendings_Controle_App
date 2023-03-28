@@ -21,6 +21,6 @@ d1 = {'One': [1, 2, 3, 2, 3], 'Two': [1, 2, 3, 1, 3], 'Three': [1, 2, 3, 1, 3],}
 
 canvas.draw_mult_bars_plot(['21.03.2023', '22.03.2023', '23.03.2023', '26.03.2023', '25.03.2023'], d1, drawAllValues=True)
 
-# canvas.drawLegend(['food', 'shopping', 'transport'])
+canvas.drawLegend(['food', 'shopping', 'transport'], barWidth=20)
 
 tk.mainloop()

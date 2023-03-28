@@ -105,4 +105,64 @@ def print_list(l:list):
     for index, value in enumerate(l):
         print(f'l[{index}] = {value}', end=',\n')
     print(']')
-    
+
+
+def draw_power_symbol(exponent:int):
+    """
+        Forms a string like: 
+        xbase^exponent but in unicode coding, 
+        where "x" before "base" - is the multiplication cross, 
+        ^exponent - an exponent in unicode coding.
+    """
+    powerCodes = {
+        '0': '\u2070',
+        '1': '\u00B9',
+        '2': '\u00B2',
+        '3': '\u00B3',
+        '4': '\u2074',
+        '5': '\u2075',
+        '6': '\u2076',
+        '7': '\u2077',
+        '8': '\u2078',
+        '9': '\u2079',
+        '-': '\u207B',
+    }
+
+    base = 10
+
+    powerStr = ''
+
+    for char in str(exponent):
+        powerStr += powerCodes[char] or ''
+
+    return '\u00D7'+str(base)+powerStr
+
+
+def get_exp_notation(number:float) -> tuple:
+
+    """
+        Returns a tuple that represents 
+        the exponential notation 
+        of a float number: 123.456 --> ('1.23', 2),
+        where '1.23' is the base number 
+        and 2 is its exponent.
+    """
+
+    expNotNum = '%.2E' % number
+
+    baseNum , exponent = expNotNum.split('E')
+
+    return (baseNum, int(exponent))
+
+
+def float_to_exp_notation(number: float) -> str:
+    """
+        Takes a float number 
+        and returns it exponential notation
+        where its exponent is in unicode coding: 
+        123.456 --> 1.23x10^2 or -0.0001 --> -1.00 
+    """
+    base, exponent = get_exp_notation(number)
+    powerSymb = draw_power_symbol(exponent)
+
+    return base + powerSymb
