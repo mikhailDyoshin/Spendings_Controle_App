@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import ttk
 from tkinter import messagebox
 import datetime
 from handy import *
@@ -81,6 +82,24 @@ class App(Tk):
 
         self.plotImageFrame = Frame(self.plotFrame,  width=400, height=900)
         self.plotImageFrame.grid(row=1,  column=0)
+
+        """ ******************************** Styles ******************************** """
+        style = ttk.Style()
+
+        style.configure(
+            "TButton", 
+            padding=6, 
+            relief="flat",
+            background='#131912',
+            font=('Prestige Elite Std', 10, 'bold'),
+            foreground='#df5705',
+            borderwidth=0,
+        )
+
+        style.map("TButton",
+            foreground=[('pressed', 'black'), ('active', 'black')],
+            background=[('pressed', '!disabled', '#df6f05'), ('active', '#df5705')]
+            )
 
         """ ******************************** Widgets ******************************** """
 
@@ -222,11 +241,11 @@ class App(Tk):
         self.plotBtnsWidth = 21
 
         # Button shows the week-plot
-        self.plot_btn = Button(
+        self.plot_btn = ttk.Button(
             master = self.plotButtonsFrame,
             command = self.showWeekPlot,
-            height = 1,
-            width = self.plotBtnsWidth,
+            # height = 1,
+            # width = self.plotBtnsWidth,
             text = "Week"
         )
         self.plot_btn.grid(
