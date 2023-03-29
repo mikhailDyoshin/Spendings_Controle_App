@@ -26,8 +26,6 @@ class YearData:
             self.emptyDictFormPlot, 
             self.monthOrder)
         
-        print(self.dictForPlot)
-
 
     """ *********** Methods that forms the list of months *********** """
     def months_order_list(self) -> list:

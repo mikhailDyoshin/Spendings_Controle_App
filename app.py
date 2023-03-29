@@ -273,10 +273,7 @@ class App(Tk):
             Adds new item: inserts it into database and updates the list box.
         """
         # Check if there is an empty input field
-        if self.checkEmptyFields() or self.checkFloatFields():
-            return None
-        
-        if self.check_exsisted_while_adding():
+        if self.check_valid_input():
             return None
 
         # Insert data in database
@@ -302,8 +299,12 @@ class App(Tk):
         self.transport_entry.delete(0, END)
         self.shopping_entry.delete(0, END)
 
+    
+    def check_valid_input(self):
+        return self.check_empty_fields() or self.check_float_fields() or self.check_positive_input_number() or self.check_exsisted_while_adding()
 
-    def checkEmptyFields(self):
+
+    def check_empty_fields(self):
         thereIsEmptyField = self.food_text.get() == '' or self.transport_text.get() == '' or self.shopping_text.get() == ''
         if thereIsEmptyField:
             messagebox.showerror("Required Fields", "Please include all fields")
@@ -311,15 +312,29 @@ class App(Tk):
         return thereIsEmptyField
     
 
-    def checkFloatFields(self):
+    def check_float_fields(self):
         try:
+            
             float(self.food_text.get())
             float(self.transport_text.get())
             float(self.shopping_text.get())
-            return False
+            
         except ValueError:
-            messagebox.showerror("Float Fields", "Please enter a float or an integer number")
+            messagebox.showerror("Float Fields", "Please enter a positive float or an integer number")
             return True
+        
+    def check_positive_input_number(self):
+        inputNumbers = [
+            float(self.food_text.get()),
+            float(self.transport_text.get()),
+            float(self.shopping_text.get()),
+        ]
+
+        for number in inputNumbers:
+            if number < 0:
+                messagebox.showerror("Float Fields", "Please enter a positive float or an integer number")
+                return True
+
         
     
     def check_exsisted_while_adding(self):
@@ -394,10 +409,7 @@ class App(Tk):
             Removes selected item: removes it from the database and updates the list box.
         """
         # Check if there is an empty input field
-        if self.checkEmptyFields() or self.checkFloatFields():
-            return None
-        
-        if self.check_existed_while_deleting():
+        if self.check_valid_input:
             return None
         
         self.db.remove(self.selectedID)
@@ -472,12 +484,8 @@ class App(Tk):
         """
             Updates edited item.
         """
-        # Check if there is an empty input field
-        if self.checkEmptyFields() or self.checkFloatFields():
-            return None
-        
-        # Check if the record's exist
-        if self.check_existed_while_updatind():
+        # Check valid inputs
+        if self.check_valid_input():
             return None
 
         

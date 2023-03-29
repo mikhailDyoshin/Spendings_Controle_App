@@ -125,6 +125,12 @@ class CustomPlot(tk.Canvas):
     def draw_ydata(self, maxValue, roundDigits=2):
         nOfTicks = 4
 
+        if bool(maxValue):
+            pass
+        else:
+            maxValue = 10.0
+        
+
         yStep = int(round((self.yAxesLength-self.yAxPad)/nOfTicks))
         
         yTick = maxValue/nOfTicks
@@ -185,7 +191,9 @@ class CustomPlot(tk.Canvas):
 
 
     def get_coef(self, maxValue):
-        return (self.yAxesLength - self.yAxPad)/maxValue
+        if maxValue:
+            return (self.yAxesLength - self.yAxPad)/maxValue
+        return 0
     
     
     def get_xTicks(self, nOfTicks):
