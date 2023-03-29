@@ -300,8 +300,22 @@ class App(Tk):
         self.shopping_entry.delete(0, END)
 
     
+    def check_valid_date(self):
+        today = datetime.date.today()
+        century = datetime.timedelta(days=365*100)
+        centuryAgo = today - century
+
+        inputDate = self.date_entry.get_date()
+
+        if inputDate < centuryAgo or inputDate > today:
+            messagebox.showerror("Invalid date", "The date can't lie in the future, or be later than century ago.")
+            return True
+        
+        return False
+        
+        
     def check_valid_input(self):
-        return self.check_empty_fields() or self.check_float_fields() or self.check_positive_input_number() or self.check_exsisted_while_adding()
+        return self.check_empty_fields() or self.check_float_fields() or self.check_positive_input_number() or self.check_exsisted_while_adding() or self.check_valid_date()
 
 
     def check_empty_fields(self):
@@ -322,7 +336,8 @@ class App(Tk):
         except ValueError:
             messagebox.showerror("Float Fields", "Please enter a positive float or an integer number")
             return True
-        
+
+
     def check_positive_input_number(self):
         inputNumbers = [
             float(self.food_text.get()),
@@ -335,8 +350,7 @@ class App(Tk):
                 messagebox.showerror("Float Fields", "Please enter a positive float or an integer number")
                 return True
 
-        
-    
+
     def check_exsisted_while_adding(self):
         datesExisted = self.initDict.keys()
         inputDate = date2str(self.date_entry.get_date())
