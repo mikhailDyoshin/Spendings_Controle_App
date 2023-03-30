@@ -9,7 +9,7 @@ class CustomPlot(tk.Canvas):
         # Background Color of the canvas
         self.bg = '#131912'
 
-        super().__init__(master=master, width=width, height=height, bg=self.bg)
+        super().__init__(master=master, width=width, height=height, bg=self.bg, highlightthickness=2, highlightbackground='#dc6601')
 
         # Geometrical parameters of the canvas
         self.width = width
@@ -43,6 +43,8 @@ class CustomPlot(tk.Canvas):
         self.textColor = '#df5705'
         self.barsColor = '#f36b19'
         self.barsOtline = '#131912'
+
+        self.highlightbackground='#dc6601'
 
         self.textFont = ('Prestige Elite Std', 10)
 

@@ -3,7 +3,6 @@ from tkinter import ttk
 from tkinter import messagebox
 import datetime
 from handy import *
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from db import Database
 from data import Data
 from myDateEntry import MyDateEntry
@@ -15,13 +14,18 @@ class App(Tk):
         This class describes the Spending-Control-App's funcionality.
     """
     def __init__(self):
+
         super().__init__()
+
+        self.background = '#131912'
 
         # The protocol defines what happens when the user closes a window
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Window title
         self.title("Spending-Control-App")
+
+        
 
         # Database
         self.db = Database('storage.db')
@@ -37,6 +41,8 @@ class App(Tk):
 
         # Initial dictionary where dates and data are stored
         self.initDict = self.data.initDict
+
+        self.selectedID = None
 
         # The list of tuple that stores dates and data for the plots
         self.dataToDisplay = [
@@ -54,52 +60,162 @@ class App(Tk):
         
         """ Frames """
         # Frame for inputs, buttons and the list box
-        self.mainFrame = Frame(self, width=800, height=1000)
+        self.mainFrame = Frame(self, width=800, height=1000, background=self.background)
         self.mainFrame.grid(row=0, column=0)
 
         # Frame that stores all interactive objects (buttons, entries, listbox)
-        self.interactiveFrame = Frame(self.mainFrame, width=400, height=1000, padx=5, pady=5)
+        self.interactiveFrame = Frame(
+            self.mainFrame, 
+            width=400, height=1000, 
+            padx=5, pady=5, 
+            background=self.background
+        )
         self.interactiveFrame.grid(column=0, row=0)
 
         # Frame for inputs
-        self.inputsFrame = Frame(self.interactiveFrame, width=400, height=300)
+        self.inputsFrame = Frame(
+            self.interactiveFrame, 
+            width=400, height=300, 
+            background=self.background,
+        )
         self.inputsFrame.grid(column=0, row=0)
 
         # Frame for buttons
-        self.buttonsFrame = Frame(self.interactiveFrame, width=400, height=100,)
+        self.buttonsFrame = Frame(
+            self.interactiveFrame, 
+            width=400, height=100,
+            pady=20,
+            background=self.background,
+        )
         self.buttonsFrame.grid(row=1, column=0)
 
         # Frame for list box
-        self.listBoxFrame = Frame(self.interactiveFrame, width=400, height=600,)
-        self.listBoxFrame.grid(row=2, column=0, pady=20)
+        self.listBoxFrame = Frame(
+            self.interactiveFrame, 
+            width=400, height=600,
+            background=self.background,
+        )
+        self.listBoxFrame.grid(row=2, column=0)
 
         # Frame for the plot and buttons that controle it
-        self.plotFrame = Frame(self.mainFrame,  width=400, height=1000, padx=2, pady=2)
+        self.plotFrame = Frame(
+            self.mainFrame, 
+            width=400, height=1000, 
+            padx=2, pady=2,
+            background=self.background,
+        )
         self.plotFrame.grid(row=0,  column=1)
 
-        self.plotButtonsFrame = Frame(self.plotFrame,  width=400, height=100)
+        self.plotButtonsFrame = Frame(
+            self.plotFrame, 
+            width=400, height=100,
+            background=self.background,
+            )
         self.plotButtonsFrame.grid(row=0,  column=0, pady=2)
 
-        self.plotImageFrame = Frame(self.plotFrame,  width=400, height=900)
+        self.plotImageFrame = Frame(
+            self.plotFrame,  
+            width=400, height=900,
+        )
         self.plotImageFrame.grid(row=1,  column=0)
 
         """ ******************************** Styles ******************************** """
         style = ttk.Style()
 
+        style.theme_use('clam')
+
+        # Plot buttons
         style.configure(
-            "TButton", 
+            "plot.TButton", 
             padding=6, 
-            relief="flat",
+            relief="solid",
             background='#131912',
-            font=('Prestige Elite Std', 10, 'bold'),
+            font=('Prestige Elite Std', 12, 'bold'),
             foreground='#df5705',
-            borderwidth=0,
+            borderwidth=2,
+            bordercolor='#df5705',
+            width=27,
+            focuscolor='#df5705'
         )
 
-        style.map("TButton",
-            foreground=[('pressed', 'black'), ('active', 'black')],
-            background=[('pressed', '!disabled', '#df6f05'), ('active', '#df5705')]
+        style.map("plot.TButton",
+            foreground=[
+                ('pressed', 'black'), 
+                ('active', 'black'),
+                ('focus', '#f96604'),
+            ],
+            background=[
+                ('pressed', '!disabled', '#df6f05'), 
+                ('active', '#df5705'),
+                ('focus', '#1f251e')
+            ],
+            focuscolor=[
+                ('pressed', '!disabled', '#df6f05'), 
+                ('active', '#df5705'),
+                ('focus', '#1f251e')
+            ],
             )
+        
+        # Manage buttons
+        style.configure(
+            "manage.TButton", 
+            padding=6, 
+            relief="solid",
+            background='#131912',
+            font=('Prestige Elite Std', 12, 'bold'),
+            foreground='#df5705',
+            borderwidth=2,
+            bordercolor='#df5705',
+            width=15,
+            focuscolor='#df5705'
+        )
+
+        style.map("manage.TButton",
+            foreground=[
+                ('pressed', 'black'), 
+                ('active', 'black'),
+                ('focus', '#f96604'),
+            ],
+            background=[
+                ('pressed', '!disabled', '#df6f05'), 
+                ('active', '#df5705'),
+                ('focus', '#1f251e')
+            ],
+            focuscolor=[
+                ('pressed', '!disabled', '#df6f05'), 
+                ('active', '#df5705'),
+                ('focus', '#1f251e')
+            ],
+            )
+        
+        # Labels
+        style.configure(
+            'field.TLabel', 
+            foreground='#df5705', 
+            background='#131912',
+            font=('Prestige Elite Std', 14, 'bold'),
+            anchor='w',
+            width=12
+        )
+
+        # DateEntry
+        style.configure(
+            'custom.DateEntry', 
+            fieldbackground='#131912',
+            foreground='#df5705',
+            arrowcolor='#000',
+            insertcolor='#bbbcbf'
+        )
+
+        # Scrollbar
+        style.configure(
+            'Custom.Vertical.TScrollbar', 
+            gripcount=0, 
+            background='#df5705', 
+            darkcolor='#111111', lightcolor='#222222', troughcolor='#131912', 
+            bordercolor='#444444', 
+            arrowcolor='black', arrowsize=16
+        )
 
         """ ******************************** Widgets ******************************** """
 
@@ -121,43 +237,103 @@ class App(Tk):
 
         """ Date field """
         # Date label
-        self.date_label = Label(
+        self.date_label = ttk.Label(
             self.inputsFrame, 
             text="Date", 
-            font=('bold', 14), 
-            pady=10, padx=5
+            style='field.TLabel',
         )
-        self.date_label.grid(row=0, column=0,)
+        self.date_label.grid(row=0, column=0, sticky='w')
         
         # Date input
-        self.date_entry = MyDateEntry(self.inputsFrame, align='right', width=14)
+        self.date_entry = MyDateEntry(
+            self.inputsFrame, 
+            align='right', 
+            width=12,
+            disabledbackground='red',
+            borderwidth=2,
+            bordercolor='#131912',
+            headersbackground='#131912',
+            headersforeground='#df5705',
+            weekendbackground='#bd5d2d', 
+            weekendforeground='#000',
+            font=('Prestige Elite Std', 12, 'bold'),
+            background='#df5705',
+            # othermonthforeground='#444444',
+            normalforeground='#000',
+            tooltipforeground='red',
+            foreground='#000',
+            style='custom.DateEntry',
+        )
         self.date_entry.grid(row=0, column=1,)
 
         """ Food spendings"""
         # Food label
         self.food_text = StringVar()
-        self.food_label = Label(self.inputsFrame, text="Food", font=('bold', 14), pady=10, padx=5)
-        self.food_label.grid(row=1, column=0,)
+        self.food_label = ttk.Label(
+            self.inputsFrame, 
+            text="Food", 
+            style='field.TLabel',
+        )
+        self.food_label.grid(row=1, column=0, sticky='w')
         # Food input
-        self.food_entry = Entry(self.inputsFrame, textvariable=self.food_text, width=15)
-        self.food_entry.grid(row=1, column=1,)
+        self.food_entry = Entry(
+            self.inputsFrame, 
+            textvariable=self.food_text, 
+            width=15,
+            highlightthickness=0,
+            borderwidth=2,
+            background='black',
+            insertbackground='#bbbcbf',
+            font=('Prestige Elite Std', 12, 'bold'),
+            foreground='#df5705',
+        )
+        self.food_entry.grid(row=1, column=1, sticky='e')
 
         """ Transport spendings """
         # Transport label
         self.transport_text = StringVar()
-        self.transport_label = Label(self.inputsFrame, text="Transport", font=('bold', 14), pady=10, padx=5)
-        self.transport_label.grid(row=2, column=0,)
+        self.transport_label = ttk.Label(
+            self.inputsFrame, 
+            text="Transport",
+            style='field.TLabel',
+            
+        )
+        self.transport_label.grid(row=2, column=0, sticky='w')
         # Transport input
-        self.transport_entry = Entry(self.inputsFrame, textvariable=self.transport_text, width=15)
-        self.transport_entry.grid(row=2, column=1,)
+        self.transport_entry = Entry(
+            self.inputsFrame,
+            textvariable=self.transport_text, 
+            width=15,
+            highlightthickness=0,
+            borderwidth=2,
+            background='black',
+            insertbackground='#bbbcbf',
+            font=('Prestige Elite Std', 12, 'bold'),
+            foreground='#df5705',    
+        )
+        self.transport_entry.grid(row=2, column=1, pady=4)
 
         """ Shopping """
         # Shopping label
         self.shopping_text = StringVar()
-        self.shopping_label = Label(self.inputsFrame, text="Shopping", font=('bold', 14), pady=10, padx=5)
-        self.shopping_label.grid(row=3, column=0,)
+        self.shopping_label = ttk.Label(
+            self.inputsFrame, 
+            text="Shopping",
+            style='field.TLabel',
+        )
+        self.shopping_label.grid(row=3, column=0, sticky='w')
         # Shopping input
-        self.shopping_entry = Entry(self.inputsFrame, textvariable=self.shopping_text, width=15)
+        self.shopping_entry = Entry(
+            self.inputsFrame, 
+            textvariable=self.shopping_text, 
+            width=15,
+            highlightthickness=0,
+            borderwidth=2,
+            background='black',
+            insertbackground='#bbbcbf',
+            font=('Prestige Elite Std', 12, 'bold'),
+            foreground='#df5705',    
+        )
         self.shopping_entry.grid(row=3, column=1,)
 
         """ Spendings list """
@@ -169,13 +345,17 @@ class App(Tk):
         # Create list box
         self.records_list = Listbox(
             self.listBoxFrame, 
-            border=2, 
-            width=50, height=10,
-            font = "Helvetica",
-            bg = "grey",
-            fg = 'yellow',
-            selectbackground = "black",
-            selectforeground = "orange"
+            # border=2, 
+            width=40, height=10,
+            background='#131912',
+            foreground='#df5705',
+            selectbackground='#df5705',
+            selectforeground='#000000',
+            font=('Prestige Elite Std', 12, 'bold'),
+            justify='center',
+            borderwidth=2, highlightthickness=2,
+            highlightbackground = '#df5705',
+
         )
         self.records_list.grid(
             row=listPositionY, 
@@ -187,7 +367,7 @@ class App(Tk):
         )
 
         # Create scrollbar
-        self.scrollbar = Scrollbar(self.listBoxFrame)
+        self.scrollbar = ttk.Scrollbar(self.listBoxFrame, style='Custom.Vertical.TScrollbar')
         self.scrollbar.grid(row=0, column=self.scrollbarPositionX, sticky=(N, W, E, S))
 
         # Connect scrollbar to the listbox
@@ -201,11 +381,11 @@ class App(Tk):
         buttonMargY = 5
 
         # Add button
-        self.add_btn = Button(
+        self.add_btn = ttk.Button(
             self.buttonsFrame, 
-            text="Add Report", 
-            padx=buttonPadX, pady=5, 
-            command=self.add_item
+            text="Add Report",  
+            command=self.add_item,
+            style='manage.TButton',
         )
         self.add_btn.grid(
             row=0, column=0,
@@ -213,11 +393,11 @@ class App(Tk):
         )
 
         # Remove button
-        self.remove_btn = Button(
+        self.remove_btn = ttk.Button(
             self.buttonsFrame, 
-            text="Remove Report", 
-            padx=buttonPadX, pady=5, 
-            command=self.remove_item
+            text="Remove Report",  
+            command=self.remove_item,
+            style='manage.TButton',
         )
         self.remove_btn.grid(
             row=0, column=1,
@@ -225,14 +405,24 @@ class App(Tk):
             )
 
         # Update button
-        self.update_btn = Button(self.buttonsFrame, text="Update Report", padx=buttonPadX, pady=5, command=self.update_item)
+        self.update_btn = ttk.Button(
+            self.buttonsFrame, 
+            text="Update Report",  
+            command=self.update_item,
+            style='manage.TButton',
+        )
         self.update_btn.grid(
             row=0, column=2,
             padx=buttonMargX, pady=buttonMargY
         )
 
         # Clear button
-        self.clear_btn = Button(self.buttonsFrame, text="Clear Report", padx=buttonPadX, pady=5, command=self.clear_text)
+        self.clear_btn = ttk.Button(
+            self.buttonsFrame, 
+            text="Clear Report",  
+            command=self.clear_text,
+            style='manage.TButton',
+        )
         self.clear_btn.grid(
             row=0, column=3,
             padx=buttonMargX, pady=buttonMargY
@@ -241,40 +431,37 @@ class App(Tk):
         self.plotBtnsWidth = 21
 
         # Button shows the week-plot
-        self.plot_btn = ttk.Button(
+        self.week_btn = ttk.Button(
             master = self.plotButtonsFrame,
             command = self.showWeekPlot,
-            # height = 1,
-            # width = self.plotBtnsWidth,
-            text = "Week"
+            text = "Week",
+            style='plot.TButton'
         )
-        self.plot_btn.grid(
+        self.week_btn.grid(
             row = 0, column=0,
             padx=buttonMargX, pady=buttonMargY
         )
 
         # Button shows the month-plot
-        self.plot_btn = Button(
+        self.month_btn = ttk.Button(
             master = self.plotButtonsFrame,
             command = self.showMonthPlot,
-            height = 1,
-            width = self.plotBtnsWidth,
-            text = "Month"
+            text = "Month",
+            style='plot.TButton'
         )
-        self.plot_btn.grid(
+        self.month_btn.grid(
             row = 0, column=1, 
             padx=buttonMargX, pady=buttonMargY
         )
 
         # Button shows the year-plot
-        self.plot_btn = Button(
+        self.year_btn = ttk.Button(
             master = self.plotButtonsFrame,
             command = self.showYearPlot,
-            height = 1,
-            width = self.plotBtnsWidth,
-            text = "Year"
+            text = "Year",
+            style='plot.TButton'
         )
-        self.plot_btn.grid(
+        self.year_btn.grid(
             row = 0, column=2, 
             padx=buttonMargX, pady=buttonMargY
         )
@@ -291,8 +478,11 @@ class App(Tk):
         """
             Adds new item: inserts it into database and updates the list box.
         """
-        # Check if there is an empty input field
+        
         if self.check_valid_input():
+            return None
+        
+        if self.check_exsisted_while_adding():
             return None
 
         # Insert data in database
@@ -334,7 +524,7 @@ class App(Tk):
         
         
     def check_valid_input(self):
-        return self.check_empty_fields() or self.check_float_fields() or self.check_positive_input_number() or self.check_exsisted_while_adding() or self.check_valid_date()
+        return self.check_empty_fields() or self.check_float_fields() or self.check_positive_input_number() or self.check_valid_date()
 
 
     def check_empty_fields(self):
@@ -418,9 +608,9 @@ class App(Tk):
 
         if inputDate in datesExisted:
             return False
-        else:
-            messagebox.showerror("No such record", "There is no record with given date.")
-            return True
+        
+        messagebox.showerror("No such record", "There is no record with given date.")
+        return True
 
 
 
@@ -441,13 +631,19 @@ class App(Tk):
         """
             Removes selected item: removes it from the database and updates the list box.
         """
+        if self.selectedID:
         # Check if there is an empty input field
-        if self.check_valid_input:
+            if self.check_existed_while_deleting():
+                return None
+            
+            
+            self.db.remove(self.selectedID)
+            self.clear_text()
+            self.update_visual()
             return None
-        
-        self.db.remove(self.selectedID)
-        self.clear_text()
-        self.update_visual()
+
+        messagebox.showerror("No record is selected", "You didn't select any record to delete.")
+        return None
 
 
     def select_item(self, event):
@@ -519,6 +715,9 @@ class App(Tk):
         """
         # Check valid inputs
         if self.check_valid_input():
+            return None
+        
+        if self.check_existed_while_updatind():
             return None
 
         

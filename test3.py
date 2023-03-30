@@ -1,27 +1,51 @@
+import tkinter as tk
 from tkinter import ttk
-import tkinter
+from tkcalendar import DateEntry
 
-root = tkinter.Tk()
+
+root = tk.Tk()
+
+root.config(width=300, height=300)
 
 style = ttk.Style()
-
+style.theme_use('clam')
 style.configure(
-    "TButton", 
-    padding=6, 
-    relief="flat",
-    background='#131912',
-    font= ('Prestige Elite Std', 10, 'bold'),
+    'custom.DateEntry', 
+    fieldbackground='#131912',
     foreground='#df5705',
-    borderwidth=0,
-   )
+    # border=0,
+    arrowcolor='#000',
+    insertcolor='#bbbcbf'
+)
 
-style.map("TButton",
-    foreground=[('pressed', 'black'), ('active', 'black')],
-    background=[('pressed', '!disabled', '#df6f05'), ('active', '#df5705')]
-    )
+# create dateEntry using the custom style
+dateEntry = DateEntry(
+    root,
+    disabledbackground='red',
+    borderwidth=2,
+    bordercolor='#131912',
+    headersbackground='#131912',
+    headersforeground='#df5705',
+    weekendbackground='#bd5d2d', 
+    weekendforeground='#000',
+    font=('Prestige Elite Std', 12, 'bold'),
+    background='#000',
+    othermonthforeground='#444444',
+    normalforeground='#000',
+    tooltipforeground='red',
+    foreground='#df5705',
+    style='custom.DateEntry',
+) 
 
-btn = ttk.Button(text="Sample")
-btn.pack()
+
+
+dateEntry.pack()
+
+# print(help(dateEntry.configure))
+keys = dateEntry.keys()
+
+for key in keys:
+    print(key)
 
 
 root.mainloop()
