@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+import tkinter as tk
 import datetime
 from handy import *
 from db import Database
@@ -44,20 +45,15 @@ class App(Tk):
 
         self.selectedID = None
 
-        # The list of tuple that stores dates and data for the plots
-        self.dataToDisplay = [
-            (self.data.lastWeekDatesSorted, self.data.lastWeekhDictForPlot),
-            (self.data.lastMonthDatesSorted, self.data.lastMonthDictForPlot),
-            (self.data.monthsList, self.data.lastYearDictForPlot),
-        ]
+        # The list of tuples that stores data to display on UI
+        self.update_displayable_data()
 
         # Default plot's index in the list of plots
         self.activePlotIndex = 0
 
-        self.activeDatesList = self.dataToDisplay[self.activePlotIndex][0]
-        self.activeData = self.dataToDisplay[self.activePlotIndex][1]
+        # Updates active data to display on UI
+        self.update_active_data()
 
-        
         """ Frames """
         # Frame for inputs, buttons and the list box
         self.mainFrame = Frame(self, width=800, height=1000, background=self.background)
@@ -118,6 +114,13 @@ class App(Tk):
             width=400, height=900,
         )
         self.plotImageFrame.grid(row=1,  column=0)
+
+        self.plotLabelFrame = Frame(
+            self.plotFrame,
+            width=100, height=100,
+            background=self.background,
+        )
+        self.plotLabelFrame.grid(row=2,  column=0)
 
         """ ******************************** Styles ******************************** """
         style = ttk.Style()
@@ -196,6 +199,16 @@ class App(Tk):
             font=('Prestige Elite Std', 14, 'bold'),
             anchor='w',
             width=12
+        )
+
+        # Plot-label
+        style.configure(
+            'plotLabel.TLabel', 
+            foreground='#df5705', 
+            background='#131912',
+            font=('Prestige Elite Std', 14, 'bold'),
+            anchor='center',
+            width=80,
         )
 
         # DateEntry
@@ -466,6 +479,20 @@ class App(Tk):
             padx=buttonMargX, pady=buttonMargY
         )
 
+        # Plot's label
+        self.plotLabel = ttk.Label(
+            self.plotLabelFrame, 
+            text="Total",
+            style='plotLabel.TLabel',
+        )
+        # self.plotLabel.grid(
+        #     row=0, column=0,
+        # )
+        self.plotLabel.pack(pady=5)
+        # Updates the text of the plot-label
+        self.update_labels_text()
+        
+
         # Bind select
         self.records_list.bind('<<ListboxSelect>>', self.select_item)
 
@@ -679,6 +706,8 @@ class App(Tk):
         
         self.update_plot()
 
+        self.update_labels_text()
+
 
     def showMonthPlot(self):
         self.activePlotIndex = 1
@@ -686,6 +715,8 @@ class App(Tk):
         self.update_active_data()
 
         self.update_plot()
+
+        self.update_labels_text()
 
 
     def showYearPlot(self):
@@ -695,18 +726,41 @@ class App(Tk):
 
         self.update_plot()
 
+        self.update_labels_text()
+
     
     def update_active_data(self):
         self.activeDatesList = self.dataToDisplay[self.activePlotIndex][0]
         self.activeData = self.dataToDisplay[self.activePlotIndex][1]
+        self.activeLabel = self.dataToDisplay[self.activePlotIndex][2]
+        self.activePeriod = self.dataToDisplay[self.activePlotIndex][3]
 
     
     def update_displayable_data(self):
         self.dataToDisplay = [
-            (self.data.lastWeekDatesSorted, self.data.lastWeekhDictForPlot),
-            (self.data.lastMonthDatesSorted, self.data.lastMonthDictForPlot),
-            (self.data.monthsList, self.data.lastYearDictForPlot),
+            (
+                self.data.lastWeekDatesSorted, 
+                self.data.lastWeekhDictForPlot, 
+                self.data.weekTotal,
+                'week'
+            ),
+            (
+                self.data.lastMonthDatesSorted, 
+                self.data.lastMonthDictForPlot, 
+                self.data.monthTotal,
+                'month'
+            ),    
+            (
+                self.data.monthsList, 
+                self.data.lastYearDictForPlot, 
+                self.data.yearTotal,
+                'year',
+            ),
         ]
+
+    def update_labels_text(self):
+        self.plotLabel.configure(
+            text=f'Total spendings for the last {self.activePeriod}: {self.activeLabel} rub.')
 
 
     def update_item(self):
@@ -752,6 +806,7 @@ class App(Tk):
         self.update_active_data()
         self.populate()
         self.update_plot()
+        self.update_labels_text()
 
 
     def on_closing(self):

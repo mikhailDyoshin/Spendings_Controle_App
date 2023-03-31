@@ -202,7 +202,7 @@ class YearData:
             },
             where each list stores 12 zeros.
         """
-        return {key: self.zeros_list(12) for key in self.fieldsPuller(dictionary) if key != 'total'}
+        return {key: self.zeros_list(12) for key in self.fieldsPuller(dictionary)}
 
 
     def dict_for_plot_former(self, dictionary:dict, dictForPlot:dict, order:list) -> dict:
@@ -226,7 +226,7 @@ class YearData:
 
             and the list of numbers 
             that represents the order 
-            of months to diplay on the plot.
+            of months to display on the plot.
 
             The second dictionary values are lists 
             formed in order that 'order'-argument defines.
@@ -236,7 +236,7 @@ class YearData:
 
             ['Jun.', 'Jul.', ..., 'Apr.', 'May'], 
             
-            then the lists in the second dictionary will look like:
+            than the lists in the second dictionary will look like:
 
             [TotalForJun, TotalForJul, ..., TotalForApr, TotalForMay]
 
@@ -248,4 +248,8 @@ class YearData:
             for field in dictForPlot.keys():
                 dictForPlot[field][index] += dictionary[date][field]
 
-        return dictForPlot
+        dictToDisplay = {key:value for (key, value) in dictForPlot.items() if key != 'total'}
+
+        self.yearTotal = sum(dictForPlot['total'])
+
+        return dictToDisplay

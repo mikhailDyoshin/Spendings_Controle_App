@@ -50,6 +50,11 @@ class Data():
         # The entity of the class where data of the last year period is formed
         self.yearData = YearData(self.initDict)
 
+        # Total spendings for a period
+        self.weekTotal = self.count_total(self.lastWeekDatesSpendings, 'total')
+        self.monthTotal = self.count_total(self.lastMonthDatesSpendings, 'total')
+        self.yearTotal = self.yearData.yearTotal
+
         # List of months that belong to the last year period
         self.monthsList = self.yearData.monthsList
 
@@ -146,6 +151,11 @@ class Data():
                 zeroDict[key] = data_dict[key]
         
         return zeroDict
+    
+    def count_total(self, resultDict:dict, field:str) -> float:
+        totals = [d[field] for d in resultDict.values()]
+        
+        return sum(totals)
 
 
     def dict_for_plot(self, sortedListOfDicts:list) -> dict:
