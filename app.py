@@ -261,7 +261,7 @@ class App(Tk):
         self.date_entry = MyDateEntry(
             self.inputsFrame, 
             align='right', 
-            width=12,
+            width=14,
             disabledbackground='red',
             borderwidth=2,
             bordercolor='#131912',

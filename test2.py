@@ -1,26 +1,36 @@
-import tkinter as tk
-from customPlot import CustomPlot
+import datetime
 
 
-app = tk.Tk()
+def dates_list_former():
+    # Today's date
+    today = datetime.date.today()
 
-canvW = 800
-canvH = 500
+    # Number of dates to create
+    Ndays = 368
 
-d = {'May': 2000, 'June': 3000, 'July': 4000, 'Aug': 4543, 'Sep.': 12073, 'Oct.': 10047, 'Nov': 9765.41}
-# d = {'May': 200, 'June': 300, 'July': 400, 'Aug': 443,}
-canvas = CustomPlot(app, width=canvW, height=canvH)
-canvas.pack()
-# canvas.draw_data(d)
+    # 368 days delta
+    delta = datetime.timedelta(days=Ndays)
 
-d1 = {'One': [1, 2, 3, 2, 100], 'Two': [1, 2, 3, 1, 3], 'Three': [1, 2, 3, 1, 3],}
+    # One day delta 
+    dateIncrement = datetime.timedelta(days=1)
 
-# canvas.mult_bars(d1)
+    # 368 days ago date
+    yearAgo = today - delta
 
-# canvas.draw_mult_bars(['21.03.2023', '22.03.2023', '23.03.2023'], d1)
+    # Empty list to store dates
+    dates = []
 
-canvas.draw_mult_bars_plot(['21.03.2023', '22.03.2023', '23.03.2023', '26.03.2023', '25.03.2023'], d1, drawAllValues=True)
+    # The first element in the list
+    date = yearAgo
 
-canvas.drawLegend(['food', 'shopping', 'transport'], barWidth=20)
+    # Forms the dates list
+    for i in range(Ndays):
+        date += dateIncrement
+        dates.append(str(date))
 
-tk.mainloop()
+    return dates
+    
+
+dates_list = dates_list_former()
+
+print(dates_list[0])
