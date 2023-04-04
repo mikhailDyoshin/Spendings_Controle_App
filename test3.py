@@ -6,15 +6,12 @@ root = tk.Tk()
 
 root.config(width=300, height=300)
 
-weeksCounterFrame = tk.Frame(root, background='black')
-weeksCounterFrame.pack(padx=10, pady=10)
+weeksCounterFrame = tk.Frame(root, background='#c47104')
+weeksCounterFrame.pack(padx=5, pady=5)
 
 existingDates = ['2023-04-01', '2022-12-03', '2023-04-03']
 
-canvas = DaysCounter(weeksCounterFrame, width=1105, existingDates=existingDates)
-canvas.pack(padx=1, pady=1)
-
-
-
+canvas = DaysCounter(weeksCounterFrame, existingDates=existingDates)
+canvas.pack(padx=3, pady=3)
 
 root.mainloop()

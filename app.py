@@ -8,6 +8,7 @@ from db import Database
 from data import Data
 from myDateEntry import MyDateEntry
 from customPlot import CustomPlot
+from DaysCounter import DaysCounter
 
 
 class App(Tk):
@@ -26,8 +27,6 @@ class App(Tk):
         # Window title
         self.title("Spending-Control-App")
 
-        
-
         # Database
         self.db = Database('storage.db')
 
@@ -42,7 +41,7 @@ class App(Tk):
 
         # Initial dictionary where dates and data are stored
         self.initDict = self.data.initDict
-
+        
         self.selectedID = None
 
         # The list of tuples that stores data to display on UI
@@ -55,18 +54,21 @@ class App(Tk):
         self.update_active_data()
 
         """ Frames """
-        # Frame for inputs, buttons and the list box
+        # Frame for everything
         self.mainFrame = Frame(self, width=800, height=1000, background=self.background)
         self.mainFrame.grid(row=0, column=0)
+
+        
 
         # Frame that stores all interactive objects (buttons, entries, listbox)
         self.interactiveFrame = Frame(
             self.mainFrame, 
             width=400, height=1000, 
-            padx=5, pady=5, 
+            # padx=5, pady=5, 
             background=self.background
         )
-        self.interactiveFrame.grid(column=0, row=0)
+        # self.interactiveFrame.grid(column=0, row=1)
+        self.interactiveFrame.pack(pady=10)
 
         # Frame for inputs
         self.inputsFrame = Frame(
@@ -100,7 +102,8 @@ class App(Tk):
             padx=2, pady=2,
             background=self.background,
         )
-        self.plotFrame.grid(row=0,  column=1)
+        # self.plotFrame.grid(row=1,  column=1)
+        self.plotFrame.pack()
 
         self.plotButtonsFrame = Frame(
             self.plotFrame, 
@@ -121,6 +124,18 @@ class App(Tk):
             background=self.background,
         )
         self.plotLabelFrame.grid(row=2,  column=0)
+
+        # Frame for activity-tracker widget
+        self.activityTrackerFrame = Frame(
+            self.mainFrame,
+            background='#df5705',
+        )
+        # self.activityTrackerFrame.grid(column=1, row=0, sticky='we')
+        self.activityTrackerFrame.pack(pady=10)
+
+        activityTrackerBorder = 2
+        self.activityTracker = DaysCounter(self.activityTrackerFrame, existingDates=list(self.data.initDict.keys()))
+        self.activityTracker.pack(pady=activityTrackerBorder)
 
         """ ******************************** Styles ******************************** """
         style = ttk.Style()
@@ -236,7 +251,7 @@ class App(Tk):
         # Canvas to draw a plot
         self.canvas = CustomPlot(
             master = self.plotImageFrame,
-            width=800, height=500,
+            width=800, height=300,
             )
         
         # placing the canvas on the Tkinter window

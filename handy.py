@@ -168,3 +168,17 @@ def float_to_exp_notation(number: float) -> str:
     powerSymb = draw_power_symbol(exponent)
 
     return base + powerSymb
+
+
+def get_quotient_and_remainder(dividend: int, factor:int) -> tuple:
+    """
+        The function returns a tuple 
+        that stores a quotient and a remainder 
+        as a result of the dividend and factor arguments' devision.
+    """
+    quotient = dividend//factor
+    remainder = dividend%factor
+    return (quotient, remainder)
+
+def reverse_tuple(t:tuple):
+    return tuple(reversed(t))
