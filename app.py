@@ -133,9 +133,9 @@ class App(Tk):
         # self.activityTrackerFrame.grid(column=1, row=0, sticky='we')
         self.activityTrackerFrame.pack(pady=10)
 
-        activityTrackerBorder = 2
-        self.activityTracker = DaysCounter(self.activityTrackerFrame, existingDates=list(self.data.initDict.keys()))
-        self.activityTracker.pack(pady=activityTrackerBorder)
+        self.activityTrackerBorder = 2
+        self.activityTracker = DaysCounter(self.activityTrackerFrame, existingDates=list(self.initDict.keys()))
+        self.activityTracker.pack(pady=self.activityTrackerBorder)
 
         """ ******************************** Styles ******************************** """
         style = ttk.Style()
@@ -242,7 +242,14 @@ class App(Tk):
             background='#df5705', 
             darkcolor='#111111', lightcolor='#222222', troughcolor='#131912', 
             bordercolor='#444444', 
-            arrowcolor='black', arrowsize=16
+            arrowcolor='black', arrowsize=16,
+        )
+
+        style.map(
+            'Custom.Vertical.TScrollbar',
+            background = [
+                ('active', '#f0a50e'),
+            ]
         )
 
         """ ******************************** Widgets ******************************** """
@@ -374,7 +381,7 @@ class App(Tk):
         self.records_list = Listbox(
             self.listBoxFrame, 
             # border=2, 
-            width=40, height=10,
+            width=70, height=10,
             background='#131912',
             foreground='#df5705',
             selectbackground='#df5705',
@@ -751,6 +758,12 @@ class App(Tk):
         self.activePeriod = self.dataToDisplay[self.activePlotIndex][3]
 
     
+    def update_days_tracker(self):
+        self.activityTracker.destroy()
+        self.activityTracker = DaysCounter(self.activityTrackerFrame, existingDates=list(self.initDict.keys()))
+        self.activityTracker.pack(pady=self.activityTrackerBorder)
+
+    
     def update_displayable_data(self):
         self.dataToDisplay = [
             (
@@ -822,6 +835,7 @@ class App(Tk):
         self.populate()
         self.update_plot()
         self.update_labels_text()
+        self.update_days_tracker()
 
 
     def on_closing(self):
